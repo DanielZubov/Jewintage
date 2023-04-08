@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "71057707312",
+    "firebase_url": "https://jewintage-f95cf-default-rtdb.europe-west1.firebasedatabase.app",
+    "project_id": "jewintage-f95cf",
+    "storage_bucket": "jewintage-f95cf.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:71057707312:android:cfdf9d36522b8d9a92f8f5",
+        "android_client_info": {
+          "package_name": "com.stato.jewintage"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "71057707312-tfdnltp10oq0unscnn2mh0vp42k0b1qk.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.stato.jewintage",
+            "certificate_hash": "2e879fc868ce21ed367e40c898c1f2cb0e20d694"
+          }
+        },
+        {
+          "client_id": "71057707312-vau4pdd450ecs1prht52204o5u414qfa.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBvImpsbU2ifAnqzxulo1nfjOouZVEnkkM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "71057707312-039jlp3a92s5gqir68quttbfhqiing9k.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

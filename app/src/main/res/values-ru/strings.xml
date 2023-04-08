@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Jewintage</string>
+    <string name="SignInSuccess">Вы успешно вошли в систему!</string>
+    <string name="select_images_title">Выбрать фото</string>
+    <string name="loading">Загрузка…</string>
+    <string name="salesFragment">Продажи</string>
+    <string name="nomenclatureFragment">Номенклатура</string>
+    <string name="costFragment">Расходы</string>
+    <string name="delete">Удалить</string>
+</resources>

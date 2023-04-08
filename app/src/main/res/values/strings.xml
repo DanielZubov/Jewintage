@@ -1,0 +1,55 @@
+<resources>
+    <string name="app_name">Jewintage</string>
+    <string name="SignInSuccess">Вы успешно вошли в систему!</string>
+    <string name="Hello">Добро пожаловать!</string>
+    <string name="Resume">Продолжить</string>
+    <string name="account">Аккаунт</string>
+    <string name="menu">Меню</string>
+    <string name="open">Open</string>
+    <string name="close">Close</string>
+    <string name="title_dashboard">Dashboard</string>
+    <string name="title_notifications">Notifications</string>
+    <!-- Strings used for fragments for navigation -->
+    <string name="salesFragment">Sales</string>
+    <string name="nomenclatureFragment">Nomenclature</string>
+    <string name="costFragment">Cost</string>
+    <!-- Окно регистрации -->
+    <string name="link_done">Объединение аккаунтов прошло успешно</string>
+    <string name="reg_title">Регистрация</string>
+    <string name="reg_not">Войдите или зарегистрируйтесь!</string>
+    <string name="reg_btnreg">Зарегистрироваться</string>
+    <string name="reg_forgotpsw">Забыли пароль?</string>
+    <string name="reg_email">Email</string>
+    <string name="reg_password">Пароль</string>
+    <string name="reg_login">Вход</string>
+    <string name="reg_loginBtn">Войти</string>
+    <string name="reg_logout">Выход</string>
+    <string name="reg_error">Ошибка при регистрации</string>
+    <string name="reg_signInerror">Ошибка при входе</string>
+    <string name="reg_reset_password">Ссылка для восстановления пароля отправлена на ваш Email</string>
+    <string name="send_verification_error">Не удалось отправить ссылку для подтверждения Email</string>
+    <string name="send_verification_done">На вашу почту отправлено письмо ссылкой для подтверждения Email</string>
+    <!-- Окно радоктирования -->
+    <string name="category">Категория</string>
+    <string name="description">Описание</string>
+    <string name="photo">Фото</string>
+    <string name="price">Цена</string>
+    <string name="date">Дата</string>
+    <string name="delete">Delete</string>
+    <string name="quantity">Кол-во</string>
+    <string name="select_images_title">Select images</string>
+    <!-- ProgressBar -->
+    <string name="loading">Loading…</string>
+    <!-- Категории -->
+    <string-array name="category">
+        <item>Кольцо</item>
+        <item>Чокер</item>
+        <item>Серьги</item>
+        <item>Цепь на шею</item>
+        <item>Цепь поясная</item>
+        <item>Цепь Боди</item>
+        <item>Тканевые изделия</item>
+    </string-array>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+</resources>

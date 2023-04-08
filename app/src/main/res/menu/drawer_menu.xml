@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:showIn="navigation_view">
+
+    <item android:title="@string/menu">
+        <menu>
+            <item
+                android:title="@string/salesFragment"
+                android:id="@+id/salesItem"/>
+            <item
+                android:title="@string/nomenclatureFragment"
+                android:id="@+id/nomenclatureItem"/>
+            <item
+                android:title="@string/costFragment"
+                android:id="@+id/costItem"/>
+
+        </menu>
+    </item>
+    <item android:title="@string/account">
+        <menu>
+            <item
+                android:title="@string/reg_login"
+                android:id="@+id/signin"
+                android:icon="@drawable/google_button"/>
+            <item
+                android:title="@string/reg_logout"
+                android:id="@+id/logout"
+                android:icon="@drawable/ic_logout"/>
+            <item
+                android:title="@string/reg_title"
+                android:id="@+id/register"/>
+
+        </menu>
+    </item>
+
+
+</menu>

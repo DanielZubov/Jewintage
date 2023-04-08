@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/nomenclatureFragment"
+        android:title="@string/nomenclatureFragment"
+        android:icon="@drawable/ic_nomenclature"
+        android:orderInCategory="2"
+        />
+    <item
+        android:id="@+id/salesFragment"
+        android:title="@string/salesFragment"
+        android:icon="@drawable/ic_sales"
+        android:orderInCategory="1"
+        />
+    <item
+        android:id="@+id/costFragment"
+        android:title="@string/costFragment"
+        android:icon="@drawable/ic_cost"
+        android:orderInCategory="3"
+        />
+
+</menu>
