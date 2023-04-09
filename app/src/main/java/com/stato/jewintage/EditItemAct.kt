@@ -8,13 +8,14 @@ import android.os.Bundle
 import android.view.View
 import android.widget.ArrayAdapter
 import android.widget.Toast
+import androidx.activity.result.ActivityResultLauncher
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.widget.doOnTextChanged
 import com.fxn.utility.PermUtil
 import com.stato.jewintage.adapters.ImageAdapter
-import com.stato.jewintage.data.AddNom
+import com.stato.jewintage.model.AddNom
 import com.stato.jewintage.databinding.ActivityEditItemBinding
-import com.stato.jewintage.db.DbManager
+import com.stato.jewintage.model.DbManager
 import com.stato.jewintage.fragments.FragmentCloseInterface
 import com.stato.jewintage.fragments.ImageListFragment
 import com.stato.jewintage.util.ImagePicker
@@ -30,6 +31,8 @@ class EditItemAct : AppCompatActivity(), FragmentCloseInterface {
     lateinit var imageAdapter: ImageAdapter
     private val dbManager = DbManager()
     var editImagePos = 0
+    var launcherMultiSelectImage: ActivityResultLauncher<Intent>? = null
+    var launcherSingleSelectImage: ActivityResultLauncher<Intent>? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -43,12 +46,9 @@ class EditItemAct : AppCompatActivity(), FragmentCloseInterface {
 
         imageAdapter = ImageAdapter()
         binding.vpImages.adapter = imageAdapter
+        launcherMultiSelectImage = ImagePicker.getLaunchersForMultiSelectImages(this)
+        launcherSingleSelectImage = ImagePicker.getLauncherForSingleImage(this)
 
-    }
-
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        ImagePicker.showSelectedImages(resultCode, requestCode, data, this)
     }
 
 
@@ -57,12 +57,11 @@ class EditItemAct : AppCompatActivity(), FragmentCloseInterface {
         permissions: Array<out String>,
         grantResults: IntArray
     ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         when (requestCode) {
             PermUtil.REQUEST_CODE_ASK_MULTIPLE_PERMISSIONS -> {
 
                 if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    ImagePicker.getImages(this, 3, ImagePicker.REQUEST_CODE_GET_IMAGES)
+//                    ImagePicker.getImages(this, 3, ImagePicker.REQUEST_CODE_GET_IMAGES)
                 } else {
 
                     Toast.makeText(
@@ -74,6 +73,7 @@ class EditItemAct : AppCompatActivity(), FragmentCloseInterface {
                 return
             }
         }
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
     }
 
     override fun onResume() {
@@ -141,7 +141,7 @@ class EditItemAct : AppCompatActivity(), FragmentCloseInterface {
     fun onClickGetImages(view: View) {
         binding.vpImages.visibility = View.VISIBLE
         if (imageAdapter.mainArray.size == 0) {
-            ImagePicker.getImages(this, 3, ImagePicker.REQUEST_CODE_GET_IMAGES)
+            ImagePicker.launcher(this, launcherMultiSelectImage, 3)
         } else {
             openChooseItemFrag(null)
             chooseImageFrag?.updateAdapterFromEdit(imageAdapter.mainArray)
@@ -162,7 +162,8 @@ class EditItemAct : AppCompatActivity(), FragmentCloseInterface {
                 edTIPrice.text.toString(),
                 edTIDate.text.toString(),
                 edTIquantity.text.toString(),
-                dbManager.db.push().key
+                dbManager.db.push().key,
+                dbManager.auth.uid
 
             )
         }

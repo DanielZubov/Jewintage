@@ -1,4 +1,4 @@
-package com.stato.jewintage.data
+package com.stato.jewintage.model
 
 data class AddNom(
     val category: String? = null,
@@ -7,4 +7,5 @@ data class AddNom(
     val date: String? = null,
     val quantity: String? = null,
     val id: String? = null,
+    val uid: String? = null
 )

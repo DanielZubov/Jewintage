@@ -9,13 +9,11 @@ import android.view.ViewGroup
 import android.view.animation.Animation
 import android.view.animation.AnimationUtils
 import android.widget.ProgressBar
-import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.get
-import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.google.android.material.floatingactionbutton.FloatingActionButton
+import com.stato.jewintage.EditItemAct
 import com.stato.jewintage.R
 import com.stato.jewintage.databinding.FragmentImageListBinding
 import com.stato.jewintage.dialogHelper.ProgressDialog
@@ -99,7 +97,7 @@ class ImageListFragment(
 
         binding.btnAdd.setOnClickListener {
             val imageCount = ImagePicker.MAX_IMAGE_COUNT - adapter.mainArray.size
-            ImagePicker.getImages(activity as AppCompatActivity, imageCount, ImagePicker.REQUEST_CODE_GET_IMAGES)
+            ImagePicker.launcher(activity as EditItemAct, (activity as EditItemAct).launcherMultiSelectImage, imageCount)
         }
 
 

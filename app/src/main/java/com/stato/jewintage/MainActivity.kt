@@ -7,14 +7,11 @@ import android.view.Menu
 import android.view.MenuItem
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.activity.viewModels
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.GravityCompat
-import androidx.navigation.NavController
-import androidx.navigation.findNavController
-import androidx.navigation.ui.AppBarConfiguration
-import androidx.navigation.ui.setupActionBarWithNavController
-import androidx.navigation.ui.setupWithNavController
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.bumptech.glide.Glide
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.common.api.ApiException
@@ -23,40 +20,33 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
+import com.stato.jewintage.adapters.AddRcAdapter
 import com.stato.jewintage.databinding.ActivityMainBinding
-import com.stato.jewintage.db.DbManager
 import com.stato.jewintage.dialogHelper.DialogConst
 import com.stato.jewintage.dialogHelper.DialogHelper
 import com.stato.jewintage.dialogHelper.GoogleAccConst
+import com.stato.jewintage.viewmodel.FirebaseViewModel
 
 class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
     private lateinit var binding : ActivityMainBinding
     private lateinit var tvAccount : TextView
     private lateinit var userPhotoImageView : ImageView
-    private lateinit var conf: AppBarConfiguration
-    private lateinit var navController: NavController
-    lateinit var auth : FirebaseAuth
+    var auth = Firebase.auth
     private val dialogHelper = DialogHelper(this)
-    val dbManager = DbManager()
+    val adapter = AddRcAdapter(auth)
+    private val firebaseViewModel : FirebaseViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
-        auth = Firebase.auth
         setContentView(binding.root)
+        auth = Firebase.auth
         init()
-        dbManager.readDataFromDb()
+        initRecyclerView()
+        initViewModel()
+        firebaseViewModel.loadAllAds()
 
-        navController = findNavController(R.id.placeScreen)
-        conf = AppBarConfiguration(
-            setOf(
-                R.id.costFragment,
-                R.id.salesFragment,
-                R.id.nomenclatureFragment,
-            ), binding.drawerLayout
-        )
-        setupActionBarWithNavController(navController, conf)
-        binding.btmMenu.setupWithNavController(navController)
+
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
@@ -80,7 +70,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                 if (account != null){
                     dialogHelper.accountHelper.signInFirebaseWithGoogle(account.idToken!!)
                 }
-            }catch (e: ApiException){
+            } catch (e: ApiException){
                 Log.d("MyLog", "Api error : ${e.message}")
             }
         }
@@ -91,6 +81,11 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         super.onStart()
         uiUpdate(auth.currentUser)
     }
+    private fun initViewModel(){
+        firebaseViewModel.liveAdsData.observe(this, {
+            adapter.updateAdapter(it)
+        })
+    }
 
     private fun init(){
         setSupportActionBar(binding.includeToolbar.toolbar)
@@ -100,6 +95,14 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         binding.navView.setNavigationItemSelectedListener(this)
         tvAccount = binding.navView.getHeaderView(0).findViewById(R.id.titleHeader)
         userPhotoImageView = binding.navView.getHeaderView(0).findViewById(R.id.profileImg)
+    }
+
+    private fun initRecyclerView(){
+        binding.apply {
+            includeToolbar.contentNum.rcViewCM.layoutManager = LinearLayoutManager(this@MainActivity)
+            includeToolbar.contentNum.rcViewCM.adapter = adapter
+
+        }
     }
 
 
@@ -138,4 +141,6 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             }
         }
     }
+
+
 }

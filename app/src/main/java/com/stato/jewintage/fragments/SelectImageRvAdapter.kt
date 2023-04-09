@@ -49,9 +49,8 @@ class SelectImageRvAdapter(val adapterCallback: AdapterCallback) : RecyclerView.
     class ImageHolder(private val binding: SelectImageFragmentItemBinding, private val context : Context, val adapter: SelectImageRvAdapter) : RecyclerView.ViewHolder(binding.root) {
 
         fun setData(bitMap : Bitmap) {
-
             binding.imageLayout.setOnClickListener {
-                ImagePicker.getImages(context as EditItemAct, 1, ImagePicker.REQUEST_CODE_GET_SINGLE_IMAGE)
+                ImagePicker.launcher(context as EditItemAct, context.launcherSingleSelectImage, 1)
                 context.editImagePos = adapterPosition
             }
 
