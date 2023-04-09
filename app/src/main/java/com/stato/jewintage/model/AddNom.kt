@@ -1,5 +1,7 @@
 package com.stato.jewintage.model
 
+import java.io.Serializable
+
 data class AddNom(
     val category: String? = null,
     val description: String? = null,
@@ -8,4 +10,4 @@ data class AddNom(
     val quantity: String? = null,
     val id: String? = null,
     val uid: String? = null
-)
+) : Serializable

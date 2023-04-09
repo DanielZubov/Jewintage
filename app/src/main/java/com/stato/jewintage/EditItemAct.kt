@@ -30,16 +30,39 @@ class EditItemAct : AppCompatActivity(), FragmentCloseInterface {
     private var isImagePermissionGranted = false
     lateinit var imageAdapter: ImageAdapter
     private val dbManager = DbManager()
-    var editImagePos = 0
     var launcherMultiSelectImage: ActivityResultLauncher<Intent>? = null
     var launcherSingleSelectImage: ActivityResultLauncher<Intent>? = null
+    var editImagePos = 0
+    private var isEditState = false
+    private var addNom: AddNom? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityEditItemBinding.inflate(layoutInflater)
         setContentView(binding.root)
         init()
+        checkEditState()
 
+    }
+
+    private fun checkEditState(){
+        isEditState = isEditState()
+        if (isEditState){
+            addNom = intent.getSerializableExtra(MainActivity.ADS_DATA) as AddNom
+            if (addNom != null)fillViews(addNom!!)
+        }
+    }
+
+    private fun isEditState(): Boolean{
+        return intent.getBooleanExtra(MainActivity.EDIT_STATE, false)
+    }
+
+    private fun fillViews(addNom: AddNom) = with(binding){
+        edTICategory.setText(addNom.category)
+        edTIDescription.setText(addNom.description)
+        edTIPrice.setText(addNom.price)
+        edTIDate.setText(addNom.date)
+        edTIquantity.setText(addNom.quantity)
     }
 
     private fun init() {
@@ -150,7 +173,22 @@ class EditItemAct : AppCompatActivity(), FragmentCloseInterface {
     }
 
     fun onClickPublishNum(view: View){
-        dbManager.publishAdd(fillAddNum())
+        val addTemp = fillAddNum()
+        if (isEditState) {
+            dbManager.publishAdd(addTemp.copy(id = addNom?.id), onPublishFinish())
+        } else{
+            dbManager.publishAdd(addTemp, onPublishFinish())
+        }
+    }
+
+    private fun onPublishFinish(): DbManager.FinishWorkListener{
+        return object: DbManager.FinishWorkListener{
+            override fun onFinish() {
+                finish()
+            }
+
+        }
+
     }
 
     private fun fillAddNum(): AddNom {

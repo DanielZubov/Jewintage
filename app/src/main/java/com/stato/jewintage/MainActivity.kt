@@ -33,7 +33,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     private lateinit var userPhotoImageView : ImageView
     var auth = Firebase.auth
     private val dialogHelper = DialogHelper(this)
-    val adapter = AddRcAdapter(auth)
+    val adapter = AddRcAdapter(this)
     private val firebaseViewModel : FirebaseViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -142,5 +142,9 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         }
     }
 
+    companion object{
+        const val EDIT_STATE = "edit_state"
+        const val ADS_DATA = "ads_data"
+    }
 
 }
