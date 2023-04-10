@@ -7,39 +7,48 @@ import com.google.firebase.database.Query
 import com.google.firebase.database.ValueEventListener
 import com.google.firebase.database.ktx.database
 import com.google.firebase.ktx.Firebase
+import com.google.firebase.storage.ktx.storage
 
 class DbManager {
 
-    val db = Firebase.database.getReference("main")
+    val db = Firebase.database.getReference("Nomenclature")
+    val dbStorage = Firebase.storage.getReference("Nomenclature")
     val auth = Firebase.auth
 
     fun publishAdd(addNom: AddNom, finishWorkListener: FinishWorkListener) {
         if (auth.uid != null)
             db.child(addNom.id ?: "empty")
                 .child(auth.uid!!)
-                .child("Nomenclature")
+                .child("Item")
             .setValue(addNom).addOnCompleteListener {
                     finishWorkListener.onFinish()
                 }
     }
 
     fun getMyAds(readDataCallBack: ReadDataCallBack?){
-        val query = db.orderByChild(auth.uid + "/Nomenclature/uid").equalTo(auth.uid)
+        val query = db.orderByChild(auth.uid + "/Item/uid").equalTo(auth.uid)
         readDataFromDb(query, readDataCallBack)
     }
 
     fun getAllAds(readDataCallBack: ReadDataCallBack?){
-        val query = db.orderByChild(auth.uid + "/Nomenclature/date")
+        val query = db.orderByChild(auth.uid + "/Item/date")
         readDataFromDb(query, readDataCallBack)
     }
 
-    private fun readDataFromDb(query : Query, readDataCallBack: ReadDataCallBack?) {
+    fun deleteAd(addNom: AddNom, listener: FinishWorkListener){
+        if (addNom.id == null || addNom.uid == null) return
+        db.child(addNom.id).child(addNom.uid).removeValue().addOnCompleteListener {
+            if (it.isSuccessful) listener.onFinish()
 
+        }
+    }
+
+    private fun readDataFromDb(query : Query, readDataCallBack: ReadDataCallBack?) {
         query.addValueEventListener(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 val addArray = ArrayList<AddNom>()
                 for (item in snapshot.children) {
-                    val ad = item.children.iterator().next().child("Nomenclature")
+                    val ad = item.children.iterator().next().child("Item")
                         .getValue(AddNom::class.java)
                     if (ad != null) addArray.add(ad)
                 }

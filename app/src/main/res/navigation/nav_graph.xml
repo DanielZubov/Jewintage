@@ -7,16 +7,16 @@
     <fragment
         android:id="@+id/nomenclatureFragment"
         android:name="com.stato.jewintage.fragments.NomenclatureFragment"
-        android:label="fragment_nomenclature"
+        android:label="@string/nomenclatureFragment"
         tools:layout="@layout/fragment_nomenclature" />
     <fragment
         android:id="@+id/costFragment"
         android:name="com.stato.jewintage.fragments.CostFragment"
-        android:label="fragment_cost"
+        android:label="@string/costFragment"
         tools:layout="@layout/fragment_cost" />
     <fragment
         android:id="@+id/salesFragment"
         android:name="com.stato.jewintage.fragments.SalesFragment"
-        android:label="fragment_sales"
+        android:label="@string/salesFragment"
         tools:layout="@layout/fragment_sales" />
 </navigation>

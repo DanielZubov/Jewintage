@@ -1,17 +1,14 @@
 package com.stato.jewintage
 
 import android.app.DatePickerDialog
-import android.content.Intent
-import android.content.pm.PackageManager
 import android.graphics.Bitmap
+import android.net.Uri
 import android.os.Bundle
 import android.view.View
 import android.widget.ArrayAdapter
-import android.widget.Toast
-import androidx.activity.result.ActivityResultLauncher
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.widget.doOnTextChanged
-import com.fxn.utility.PermUtil
+import com.google.android.gms.tasks.OnCompleteListener
 import com.stato.jewintage.adapters.ImageAdapter
 import com.stato.jewintage.model.AddNom
 import com.stato.jewintage.databinding.ActivityEditItemBinding
@@ -19,6 +16,7 @@ import com.stato.jewintage.model.DbManager
 import com.stato.jewintage.fragments.FragmentCloseInterface
 import com.stato.jewintage.fragments.ImageListFragment
 import com.stato.jewintage.util.ImagePicker
+import java.io.ByteArrayOutputStream
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.collections.ArrayList
@@ -30,9 +28,8 @@ class EditItemAct : AppCompatActivity(), FragmentCloseInterface {
     private var isImagePermissionGranted = false
     lateinit var imageAdapter: ImageAdapter
     private val dbManager = DbManager()
-    var launcherMultiSelectImage: ActivityResultLauncher<Intent>? = null
-    var launcherSingleSelectImage: ActivityResultLauncher<Intent>? = null
     var editImagePos = 0
+    private var imageIndex = 0
     private var isEditState = false
     private var addNom: AddNom? = null
 
@@ -69,34 +66,7 @@ class EditItemAct : AppCompatActivity(), FragmentCloseInterface {
 
         imageAdapter = ImageAdapter()
         binding.vpImages.adapter = imageAdapter
-        launcherMultiSelectImage = ImagePicker.getLaunchersForMultiSelectImages(this)
-        launcherSingleSelectImage = ImagePicker.getLauncherForSingleImage(this)
 
-    }
-
-
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray
-    ) {
-        when (requestCode) {
-            PermUtil.REQUEST_CODE_ASK_MULTIPLE_PERMISSIONS -> {
-
-                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-//                    ImagePicker.getImages(this, 3, ImagePicker.REQUEST_CODE_GET_IMAGES)
-                } else {
-
-                    Toast.makeText(
-                        this,
-                        "Approve permissions to open Pix ImagePicker",
-                        Toast.LENGTH_LONG
-                    ).show()
-                }
-                return
-            }
-        }
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
     }
 
     override fun onResume() {
@@ -164,7 +134,7 @@ class EditItemAct : AppCompatActivity(), FragmentCloseInterface {
     fun onClickGetImages(view: View) {
         binding.vpImages.visibility = View.VISIBLE
         if (imageAdapter.mainArray.size == 0) {
-            ImagePicker.launcher(this, launcherMultiSelectImage, 3)
+            ImagePicker.getMultiImages(this,3)
         } else {
             openChooseItemFrag(null)
             chooseImageFrag?.updateAdapterFromEdit(imageAdapter.mainArray)
@@ -173,11 +143,11 @@ class EditItemAct : AppCompatActivity(), FragmentCloseInterface {
     }
 
     fun onClickPublishNum(view: View){
-        val addTemp = fillAddNum()
+        addNom = fillAddNum()
         if (isEditState) {
-            dbManager.publishAdd(addTemp.copy(id = addNom?.id), onPublishFinish())
+            addNom?.copy(id = addNom?.id)?.let { dbManager.publishAdd(it, onPublishFinish()) }
         } else{
-            dbManager.publishAdd(addTemp, onPublishFinish())
+            uploadImages()
         }
     }
 
@@ -200,6 +170,9 @@ class EditItemAct : AppCompatActivity(), FragmentCloseInterface {
                 edTIPrice.text.toString(),
                 edTIDate.text.toString(),
                 edTIquantity.text.toString(),
+                "empty",
+                "empty",
+                "empty",
                 dbManager.db.push().key,
                 dbManager.auth.uid
 
@@ -214,14 +187,53 @@ class EditItemAct : AppCompatActivity(), FragmentCloseInterface {
         chooseImageFrag = null
     }
 
-    fun openChooseItemFrag(newList: ArrayList<String>?) {
+    fun openChooseItemFrag(newList: ArrayList<Uri>?) {
 
-        chooseImageFrag = ImageListFragment(this, newList)
+        chooseImageFrag = ImageListFragment(this)
+        if (newList != null)chooseImageFrag?.resizeSelectedImages(newList, true, this)
         binding.scrollViewMain.visibility = View.GONE
         val fm = supportFragmentManager.beginTransaction()
         fm.replace(R.id.placeHolder, chooseImageFrag!!)
         fm.commit()
 
+    }
+
+    private fun uploadImages(){
+        if (imageAdapter.mainArray.size == imageIndex){
+            dbManager.publishAdd(addNom!!, onPublishFinish())
+            return
+        }
+        val byteArray = prepareImageByteArray(imageAdapter.mainArray[imageIndex])
+        uploadImage(byteArray){
+//            dbManager.publishAdd(addNom!!, onPublishFinish())
+            nextImage(it.result.toString())
+        }
+    }
+    private fun nextImage(uri: String){
+        setImageUriToAddNom(uri)
+        imageIndex++
+        uploadImages()
+    }
+
+    private fun setImageUriToAddNom(uri: String){
+        when(imageIndex){
+            0 -> addNom = addNom?.copy(mainImage = uri)
+            1 -> addNom = addNom?.copy(image2 = uri)
+            2 -> addNom = addNom?.copy(image3 = uri)
+        }
+    }
+    private fun prepareImageByteArray(bitmap: Bitmap): ByteArray{
+        val outStream = ByteArrayOutputStream()
+        bitmap.compress(Bitmap.CompressFormat.PNG, 20, outStream)
+        return outStream.toByteArray()
+    }
+    private fun uploadImage(byteArray: ByteArray, listener: OnCompleteListener<Uri>){
+        val imStorageReference = dbManager.dbStorage.child(dbManager.auth.uid!!)
+            .child("image_${System.currentTimeMillis()}")
+        val upTask = imStorageReference.putBytes(byteArray)
+        upTask.continueWithTask{
+            task->imStorageReference.downloadUrl
+        }.addOnCompleteListener(listener)
     }
 
 }

@@ -2,6 +2,7 @@ package com.stato.jewintage.fragments
 
 import android.app.Activity
 import android.graphics.Bitmap
+import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -10,7 +11,6 @@ import android.view.animation.Animation
 import android.view.animation.AnimationUtils
 import android.widget.ProgressBar
 import androidx.core.view.get
-import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.stato.jewintage.EditItemAct
@@ -26,13 +26,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
-class ImageListFragment(
-
-    private val FragCloseInterface: FragmentCloseInterface,
-    private val newList: ArrayList<String>?
-) : Fragment(), AdapterCallback {
-//    private var btnAdd : FloatingActionButton? = null
+class ImageListFragment(private val FragCloseInterface: FragmentCloseInterface
+) : BaseFrag(), AdapterCallback {
     lateinit var binding: FragmentImageListBinding
+//    private var btnAdd : FloatingActionButton? = null
     private var job: Job? = null
     private val rotateOpen: Animation by lazy {
         AnimationUtils.loadAnimation(
@@ -59,31 +56,34 @@ class ImageListFragment(
         )
     }
     private var clicked = false
-    val adapter = SelectImageRvAdapter(this)
-    val dragCallback = ItemMoveCallBack(adapter)
-    val touchHelper = ItemTouchHelper(dragCallback)
+    private val adapter = SelectImageRvAdapter(this)
+    private val dragCallback = ItemMoveCallBack(adapter)
+    private val touchHelper = ItemTouchHelper(dragCallback)
+
     override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
+        inflater: LayoutInflater,
+        container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        binding = FragmentImageListBinding.inflate(inflater)
+        binding = FragmentImageListBinding.inflate(layoutInflater)
         return binding.root
     }
 
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        touchHelper.attachToRecyclerView(binding.rcViewSelectImage)
-        binding.rcViewSelectImage.layoutManager = LinearLayoutManager(activity)
-        binding.rcViewSelectImage.adapter = adapter
-
-        if (newList != null) resizeSelectedImages(newList, true)
+        binding.apply {
+        touchHelper.attachToRecyclerView(rcViewSelectImage)
+        rcViewSelectImage.layoutManager = LinearLayoutManager(activity)
+        rcViewSelectImage.adapter = adapter
+        }
 
 
 
         //OnClick
 
         binding.btnSave.setOnClickListener {
-            activity?.supportFragmentManager?.beginTransaction()?.remove(this)?.commit()
+            onClose()
         }
 
         binding.btnImage.setOnClickListener {
@@ -97,7 +97,7 @@ class ImageListFragment(
 
         binding.btnAdd.setOnClickListener {
             val imageCount = ImagePicker.MAX_IMAGE_COUNT - adapter.mainArray.size
-            ImagePicker.launcher(activity as EditItemAct, (activity as EditItemAct).launcherMultiSelectImage, imageCount)
+            ImagePicker.addImages(activity as EditItemAct, imageCount)
         }
 
 
@@ -108,15 +108,15 @@ class ImageListFragment(
     }
 
 
-    fun updateAdapter(newList: ArrayList<String>) {
-        resizeSelectedImages(newList, false)
+    fun updateAdapter(newList: ArrayList<Uri>, activity : Activity) {
+        resizeSelectedImages(newList, false, activity)
     }
 
-    fun setSingleImage(uri : String, pos : Int){
+    fun setSingleImage(uri : Uri, pos : Int){
         val pBar = binding.rcViewSelectImage[pos].findViewById<ProgressBar>(R.id.progressBarItem)
         job = CoroutineScope(Dispatchers.Main).launch {
             pBar.visibility = View.VISIBLE
-            val bitmapList = ImageManager.imageResize(listOf(uri))
+            val bitmapList = ImageManager.imageResize(arrayListOf(uri), activity as Activity)
             pBar.visibility = View.GONE
             adapter.mainArray[pos] = bitmapList[0]
             adapter.notifyItemChanged(pos)
@@ -168,16 +168,13 @@ class ImageListFragment(
         }
     }
 
-    override fun onDetach() {
-        super.onDetach()
-        FragCloseInterface.onFragClose(adapter.mainArray)
-        job?.cancel()
-    }
 
-    private fun resizeSelectedImages(newList: ArrayList<String>, needClear : Boolean){
+
+
+    fun resizeSelectedImages(newList: ArrayList<Uri>, needClear : Boolean, activity: Activity){
         job = CoroutineScope(Dispatchers.Main).launch {
-            val dialog = ProgressDialog.createProgressDialog(activity as Activity)
-            val bitmapList = ImageManager.imageResize(newList)
+            val dialog = ProgressDialog.createProgressDialog(activity)
+            val bitmapList = ImageManager.imageResize(newList, activity)
             dialog.dismiss()
             adapter.updateAdapter(bitmapList, needClear)
             if (adapter.mainArray.size > 2) binding.btnAdd.visibility = View.GONE
@@ -187,6 +184,15 @@ class ImageListFragment(
     override fun onItemDel() {
         binding.btnAdd.visibility = View.VISIBLE
     }
+
+    override fun onClose() {
+        super.onClose()
+        activity?.supportFragmentManager?.beginTransaction()?.remove(this@ImageListFragment)?.commit()
+        FragCloseInterface.onFragClose(adapter.mainArray)
+        job?.cancel()
+    }
+
+
 
 
 }

@@ -78,6 +78,27 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
                 tools:srcCompat="@drawable/image_item" />
+
+            <ImageButton
+                android:id="@+id/ibDeleteItem"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="@android:color/transparent"
+                android:contentDescription="@string/delete"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:srcCompat="@drawable/ic_del_item" />
+
+            <ImageButton
+                android:id="@+id/ibEditItem"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="@android:color/transparent"
+                android:contentDescription="@string/delete"
+                app:layout_constraintBottom_toBottomOf="@+id/ibDeleteItem"
+                app:layout_constraintEnd_toStartOf="@+id/ibDeleteItem"
+                app:layout_constraintTop_toTopOf="@+id/ibDeleteItem"
+                app:srcCompat="@drawable/ic_description" />
         </androidx.constraintlayout.widget.ConstraintLayout>
 
     </androidx.cardview.widget.CardView>

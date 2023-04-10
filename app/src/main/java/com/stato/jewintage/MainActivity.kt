@@ -11,7 +11,11 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.GravityCompat
-import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.navigation.NavController
+import androidx.navigation.findNavController
+import androidx.navigation.ui.AppBarConfiguration
+import androidx.navigation.ui.setupActionBarWithNavController
+import androidx.navigation.ui.setupWithNavController
 import com.bumptech.glide.Glide
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.common.api.ApiException
@@ -25,12 +29,15 @@ import com.stato.jewintage.databinding.ActivityMainBinding
 import com.stato.jewintage.dialogHelper.DialogConst
 import com.stato.jewintage.dialogHelper.DialogHelper
 import com.stato.jewintage.dialogHelper.GoogleAccConst
+import com.stato.jewintage.model.AddNom
 import com.stato.jewintage.viewmodel.FirebaseViewModel
 
-class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
+class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener, AddRcAdapter.DeleteItemListener  {
     private lateinit var binding : ActivityMainBinding
     private lateinit var tvAccount : TextView
     private lateinit var userPhotoImageView : ImageView
+    private lateinit var conf: AppBarConfiguration
+    private lateinit var navController: NavController
     var auth = Firebase.auth
     private val dialogHelper = DialogHelper(this)
     val adapter = AddRcAdapter(this)
@@ -42,9 +49,20 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         setContentView(binding.root)
         auth = Firebase.auth
         init()
-        initRecyclerView()
+//        initRecyclerView()
         initViewModel()
         firebaseViewModel.loadAllAds()
+
+        navController = findNavController(R.id.placeScreen)
+        conf = AppBarConfiguration(
+            setOf(
+                R.id.costFragment,
+                R.id.salesFragment,
+                R.id.nomenclatureFragment,
+            ), binding.drawerLayout
+        )
+        setupActionBarWithNavController(navController, conf)
+        binding.btmMenu.setupWithNavController(navController)
 
 
     }
@@ -82,9 +100,9 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         uiUpdate(auth.currentUser)
     }
     private fun initViewModel(){
-        firebaseViewModel.liveAdsData.observe(this, {
+        firebaseViewModel.liveAdsData.observe(this) {
             adapter.updateAdapter(it)
-        })
+        }
     }
 
     private fun init(){
@@ -97,13 +115,16 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         userPhotoImageView = binding.navView.getHeaderView(0).findViewById(R.id.profileImg)
     }
 
-    private fun initRecyclerView(){
-        binding.apply {
-            includeToolbar.contentNum.rcViewCM.layoutManager = LinearLayoutManager(this@MainActivity)
-            includeToolbar.contentNum.rcViewCM.adapter = adapter
+//    private fun initRecyclerView() = with(binding){
+//            includeToolbar.contentNum.rcViewCM.layoutManager = LinearLayoutManager(this@MainActivity)
+//            includeToolbar.contentNum.rcViewCM.adapter = adapter
 
-        }
-    }
+
+//    }
+
+
+
+
 
 
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
@@ -146,5 +167,10 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         const val EDIT_STATE = "edit_state"
         const val ADS_DATA = "ads_data"
     }
+
+    override fun onDeleteItem(addNom: AddNom) {
+        firebaseViewModel.deleteItem(addNom)
+    }
+
 
 }

@@ -3,11 +3,7 @@ package com.stato.jewintage.fragments
 import android.content.Context
 import android.graphics.Bitmap
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageButton
-import android.widget.ImageView
-import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.stato.jewintage.EditItemAct
 import com.stato.jewintage.R
@@ -50,7 +46,7 @@ class SelectImageRvAdapter(val adapterCallback: AdapterCallback) : RecyclerView.
 
         fun setData(bitMap : Bitmap) {
             binding.imageLayout.setOnClickListener {
-                ImagePicker.launcher(context as EditItemAct, context.launcherSingleSelectImage, 1)
+                ImagePicker.getSingleImages(context as EditItemAct)
                 context.editImagePos = adapterPosition
             }
 

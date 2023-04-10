@@ -7,13 +7,13 @@
         <menu>
             <item
                 android:title="@string/salesFragment"
-                android:id="@+id/salesItem"/>
+                android:id="@+id/salesFragment"/>
             <item
                 android:title="@string/nomenclatureFragment"
-                android:id="@+id/nomenclatureItem"/>
+                android:id="@+id/nomenclatureFragment"/>
             <item
                 android:title="@string/costFragment"
-                android:id="@+id/costItem"/>
+                android:id="@+id/costFragment"/>
 
         </menu>
     </item>

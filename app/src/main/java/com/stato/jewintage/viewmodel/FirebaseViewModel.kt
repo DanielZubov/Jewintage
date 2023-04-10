@@ -25,4 +25,14 @@ class FirebaseViewModel : ViewModel() {
 
         })
     }
+    fun deleteItem(addNom: AddNom){
+        dbManager.deleteAd(addNom, object : DbManager.FinishWorkListener{
+            override fun onFinish() {
+                val updatedList = liveAdsData.value
+                updatedList?.remove(addNom)
+                liveAdsData.postValue(updatedList!!)
+            }
+
+        })
+    }
 }

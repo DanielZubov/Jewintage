@@ -4,14 +4,17 @@ import android.content.Intent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
-import com.google.firebase.auth.FirebaseAuth
+import com.squareup.picasso.Picasso
+import com.stato.jewintage.DescriptionActivity
 import com.stato.jewintage.EditItemAct
 import com.stato.jewintage.MainActivity
 import com.stato.jewintage.model.AddNom
 import com.stato.jewintage.databinding.AddNomListItemBinding
+import com.stato.jewintage.fragments.NomenclatureFragment
 
-class AddRcAdapter(val act : MainActivity) : RecyclerView.Adapter<AddRcAdapter.AdHolder>() {
+class AddRcAdapter(val act: MainActivity) : RecyclerView.Adapter<AddRcAdapter.AdHolder>() {
     val addArray = ArrayList<AddNom>()
 
 
@@ -29,9 +32,10 @@ class AddRcAdapter(val act : MainActivity) : RecyclerView.Adapter<AddRcAdapter.A
     }
 
     fun updateAdapter(newList : List<AddNom>){
+        val diffResult = DiffUtil.calculateDiff(DiffUtilHelper(addArray, newList))
+        diffResult.dispatchUpdatesTo(this)
         addArray.clear()
         addArray.addAll(newList)
-        notifyDataSetChanged()
     }
 
     class AdHolder(private val binding: AddNomListItemBinding, val act : MainActivity) : RecyclerView.ViewHolder(binding.root) {
@@ -41,8 +45,23 @@ class AddRcAdapter(val act : MainActivity) : RecyclerView.Adapter<AddRcAdapter.A
             tvNumItemDescription.text = addNom.description
             tvNumItemPrice.text = addNom.price
             tvNumItemQuant.text = addNom.quantity
-//            showItems(isOwner(addNom))
-            cvItem.setOnClickListener (onClickEdit(addNom))
+            Picasso.get().load(addNom.mainImage).into(ivNomItem)
+            showItems(isOwner(addNom))
+            mainOnClick(addNom)
+
+
+        }
+
+        private fun mainOnClick(addNom: AddNom) = with(binding){
+            cvItem.setOnClickListener {
+                val i = Intent(binding.root.context, DescriptionActivity::class.java)
+                i.putExtra("addNom", addNom)
+                binding.root.context.startActivity(i)
+            }
+            ibEditItem.setOnClickListener (onClickEdit(addNom))
+            ibDeleteItem.setOnClickListener {
+                act.onDeleteItem(addNom)
+            }
         }
 
         private fun onClickEdit(addNom: AddNom) : View.OnClickListener{
@@ -68,6 +87,9 @@ class AddRcAdapter(val act : MainActivity) : RecyclerView.Adapter<AddRcAdapter.A
             }
         }
 
+    }
+    interface DeleteItemListener{
+        fun onDeleteItem(addNom: AddNom)
     }
 
 }
