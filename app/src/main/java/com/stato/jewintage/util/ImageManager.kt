@@ -4,6 +4,7 @@ import android.app.Activity
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
+import android.util.Log
 import android.widget.ImageView
 import androidx.core.net.toUri
 import androidx.exifinterface.media.ExifInterface
@@ -61,14 +62,16 @@ object ImageManager {
             }
         }
         for (i in uris.indices) {
-            bitmapList.add(
-                Picasso.get()
-                    .load(uris[i])
-                    .resize(
-                        tempList[i][WIDTH],
-                        tempList[i][HEIGHT]
-                    ).get()
-            )
+            kotlin.runCatching {
+                bitmapList.add(
+                    Picasso.get()
+                        .load(uris[i])
+                        .resize(
+                            tempList[i][WIDTH],
+                            tempList[i][HEIGHT]
+                        ).get()
+                )
+            }
         }
         return@withContext bitmapList
     }
@@ -77,11 +80,17 @@ object ImageManager {
 
         val bitmapList = ArrayList<Bitmap>()
         for (i in uris.indices) {
-            bitmapList.add(
-                Picasso.get()
-                    .load(uris[i])
-                    .get()
-            )
+            kotlin.runCatching {
+                bitmapList.add(
+                    Picasso.get()
+                        .load(uris[i])
+                        .get()
+                )
+
+            }.onFailure { exception ->
+                // Здесь вы можете залогировать исключение и получить информацию об ошибке
+                Log.e("ImageManager", "Error loading image: ${uris[i]}", exception)
+            }
         }
         return@withContext bitmapList
     }

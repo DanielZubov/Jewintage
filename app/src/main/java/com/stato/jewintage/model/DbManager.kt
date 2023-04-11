@@ -11,15 +11,15 @@ import com.google.firebase.storage.ktx.storage
 
 class DbManager {
 
-    val db = Firebase.database.getReference("Nomenclature")
-    val dbStorage = Firebase.storage.getReference("Nomenclature")
+    val db = Firebase.database.getReference(MAIN_NODE)
+    val dbStorage = Firebase.storage.getReference(MAIN_NODE)
     val auth = Firebase.auth
 
     fun publishAdd(addNom: AddNom, finishWorkListener: FinishWorkListener) {
         if (auth.uid != null)
             db.child(addNom.id ?: "empty")
                 .child(auth.uid!!)
-                .child("Item")
+                .child(AD_NODE)
             .setValue(addNom).addOnCompleteListener {
                     finishWorkListener.onFinish()
                 }
@@ -48,7 +48,7 @@ class DbManager {
             override fun onDataChange(snapshot: DataSnapshot) {
                 val addArray = ArrayList<AddNom>()
                 for (item in snapshot.children) {
-                    val ad = item.children.iterator().next().child("Item")
+                    val ad = item.children.iterator().next().child(AD_NODE)
                         .getValue(AddNom::class.java)
                     if (ad != null) addArray.add(ad)
                 }
@@ -65,6 +65,12 @@ class DbManager {
 
     interface FinishWorkListener{
         fun onFinish()
+    }
+
+    companion object{
+        const val AD_NODE = "Item"
+        const val MAIN_NODE = "Nomenclature"
+
     }
 
 }

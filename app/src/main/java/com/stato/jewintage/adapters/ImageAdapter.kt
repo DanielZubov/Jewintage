@@ -29,12 +29,12 @@ class ImageAdapter : RecyclerView.Adapter<ImageAdapter.ImageHolder>() {
     class ImageHolder(itemView : View) : RecyclerView.ViewHolder(itemView) {
 
         lateinit var imItem : ImageView
-        fun setData(bitmap : Bitmap){
-
+        fun setData(bitmap: Bitmap) {
             imItem = itemView.findViewById(R.id.imItem)
             imItem.setImageBitmap(bitmap)
-
+            imItem.scaleType = ImageView.ScaleType.CENTER_CROP
         }
+
     }
 
     fun update(newList : ArrayList<Bitmap>){

@@ -142,13 +142,9 @@ class EditItemAct : AppCompatActivity(), FragmentCloseInterface {
 
     }
 
-    fun onClickPublishNum(view: View){
+    fun onClickPublishNum(view: View) {
         addNom = fillAddNum()
-        if (isEditState) {
-            addNom?.copy(id = addNom?.id)?.let { dbManager.publishAdd(it, onPublishFinish()) }
-        } else{
-            uploadImages()
-        }
+        uploadImages()
     }
 
     private fun onPublishFinish(): DbManager.FinishWorkListener{
@@ -162,23 +158,23 @@ class EditItemAct : AppCompatActivity(), FragmentCloseInterface {
     }
 
     private fun fillAddNum(): AddNom {
-        val addNom: AddNom
+        val adTemp: AddNom
         binding.apply {
-            addNom = AddNom(
+            adTemp = AddNom(
                 edTICategory.text.toString(),
                 edTIDescription.text.toString(),
                 edTIPrice.text.toString(),
                 edTIDate.text.toString(),
                 edTIquantity.text.toString(),
-                "empty",
-                "empty",
-                "empty",
-                dbManager.db.push().key,
+                addNom?.mainImage ?:"empty",
+                addNom?.image2 ?:"empty",
+                addNom?.image3 ?:"empty",
+                addNom?.id ?: dbManager.db.push().key,
                 dbManager.auth.uid
 
             )
         }
-        return addNom
+        return adTemp
     }
 
     override fun onFragClose(list: ArrayList<Bitmap>) {
@@ -198,17 +194,38 @@ class EditItemAct : AppCompatActivity(), FragmentCloseInterface {
 
     }
 
-    private fun uploadImages(){
-        if (imageAdapter.mainArray.size == imageIndex){
+    private fun uploadImages() {
+        if (imageIndex == 3) {
             dbManager.publishAdd(addNom!!, onPublishFinish())
             return
         }
-        val byteArray = prepareImageByteArray(imageAdapter.mainArray[imageIndex])
-        uploadImage(byteArray){
+        val oldUrl = getUrlFromAd()
+        if (imageAdapter.mainArray.size > imageIndex) {
+
+            val byteArray = prepareImageByteArray(imageAdapter.mainArray[imageIndex])
+            if (oldUrl.startsWith("http")) {
+                updateImage(byteArray, oldUrl) {
+                    nextImage(it.result.toString())
+                }
+            } else {
+                uploadImage(byteArray) {
 //            dbManager.publishAdd(addNom!!, onPublishFinish())
-            nextImage(it.result.toString())
+                    nextImage(it.result.toString())
+                }
+            }
+
+        } else {
+            if (oldUrl.startsWith("http")) {
+                deleteImageByUrl(oldUrl) {
+                    nextImage("empty")
+                }
+            } else {
+                nextImage("empty")
+            }
         }
     }
+
+
     private fun nextImage(uri: String){
         setImageUriToAddNom(uri)
         imageIndex++
@@ -222,6 +239,14 @@ class EditItemAct : AppCompatActivity(), FragmentCloseInterface {
             2 -> addNom = addNom?.copy(image3 = uri)
         }
     }
+
+    private fun getUrlFromAd(): String{
+        return listOf(
+            addNom?.mainImage!!,
+            addNom?.image2!!,
+            addNom?.image3!!
+        )[imageIndex]
+    }
     private fun prepareImageByteArray(bitmap: Bitmap): ByteArray{
         val outStream = ByteArrayOutputStream()
         bitmap.compress(Bitmap.CompressFormat.PNG, 20, outStream)
@@ -234,6 +259,20 @@ class EditItemAct : AppCompatActivity(), FragmentCloseInterface {
         upTask.continueWithTask{
             task->imStorageReference.downloadUrl
         }.addOnCompleteListener(listener)
+    }
+    private fun updateImage(byteArray: ByteArray, url: String, listener: OnCompleteListener<Uri>){
+        val imStorageReference = dbManager.dbStorage.storage
+            .getReferenceFromUrl(url)
+        val upTask = imStorageReference.putBytes(byteArray)
+        upTask.continueWithTask{
+            task->imStorageReference.downloadUrl
+        }.addOnCompleteListener(listener)
+    }
+
+    private fun deleteImageByUrl(oldUrl: String, listener: OnCompleteListener<Void>){
+        dbManager.dbStorage.storage
+            .getReferenceFromUrl(oldUrl)
+            .delete().addOnCompleteListener(listener)
     }
 
 }

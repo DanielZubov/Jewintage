@@ -16,6 +16,7 @@ import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.bumptech.glide.Glide
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.common.api.ApiException
@@ -118,8 +119,8 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 //    private fun initRecyclerView() = with(binding){
 //            includeToolbar.contentNum.rcViewCM.layoutManager = LinearLayoutManager(this@MainActivity)
 //            includeToolbar.contentNum.rcViewCM.adapter = adapter
-
-
+//
+//
 //    }
 
 

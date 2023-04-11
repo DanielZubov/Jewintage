@@ -10,6 +10,7 @@ import com.squareup.picasso.Picasso
 import com.stato.jewintage.DescriptionActivity
 import com.stato.jewintage.EditItemAct
 import com.stato.jewintage.MainActivity
+import com.stato.jewintage.constance.MainConst
 import com.stato.jewintage.model.AddNom
 import com.stato.jewintage.databinding.AddNomListItemBinding
 import com.stato.jewintage.fragments.NomenclatureFragment
@@ -55,7 +56,7 @@ class AddRcAdapter(val act: MainActivity) : RecyclerView.Adapter<AddRcAdapter.Ad
         private fun mainOnClick(addNom: AddNom) = with(binding){
             cvItem.setOnClickListener {
                 val i = Intent(binding.root.context, DescriptionActivity::class.java)
-                i.putExtra("addNom", addNom)
+                i.putExtra(MainConst.AD, addNom)
                 binding.root.context.startActivity(i)
             }
             ibEditItem.setOnClickListener (onClickEdit(addNom))

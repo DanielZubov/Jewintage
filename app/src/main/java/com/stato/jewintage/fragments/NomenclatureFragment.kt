@@ -42,9 +42,8 @@ class NomenclatureFragment : Fragment(){
 
     private fun initViewModel() {
         firebaseViewModel.liveAdsData.observe(viewLifecycleOwner) {
-            if (it != null) {
                 adapter.updateAdapter(it)
-            }
+
         }
     }
 
@@ -52,6 +51,8 @@ class NomenclatureFragment : Fragment(){
         super.onDestroyView()
         _binding = null
     }
+
+
 
 
 }
