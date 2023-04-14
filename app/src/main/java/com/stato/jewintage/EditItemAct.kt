@@ -132,7 +132,6 @@ class EditItemAct : AppCompatActivity(), FragmentCloseInterface {
     }
 
     fun onClickGetImages(view: View) {
-        binding.vpImages.visibility = View.VISIBLE
         if (imageAdapter.mainArray.size == 0) {
             ImagePicker.getMultiImages(this,3)
         } else {
