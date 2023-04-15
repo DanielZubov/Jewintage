@@ -21,14 +21,14 @@
         android:layout_width="0dp"
         android:layout_height="200dp"
         android:layout_margin="10dp"
+        android:contentDescription="@string/open"
         android:scaleType="centerCrop"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/tvTitle"
         app:layout_constraintVertical_bias="0.0"
-        app:srcCompat="@drawable/bg_header"
-        android:contentDescription="@string/open" />
+        app:srcCompat="@drawable/bg_header" />
 
     <ImageButton
         android:id="@+id/btnDeItem"
@@ -39,6 +39,7 @@
         android:minHeight="48dp"
         app:layout_constraintBottom_toBottomOf="@+id/imageContent"
         app:layout_constraintEnd_toEndOf="@+id/imageContent"
+        app:layout_constraintTop_toBottomOf="@+id/tvTitle"
         app:srcCompat="@drawable/ic_del" />
 
     <ProgressBar

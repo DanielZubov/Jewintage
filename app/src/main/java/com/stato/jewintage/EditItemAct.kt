@@ -15,6 +15,7 @@ import com.stato.jewintage.databinding.ActivityEditItemBinding
 import com.stato.jewintage.model.DbManager
 import com.stato.jewintage.fragments.FragmentCloseInterface
 import com.stato.jewintage.fragments.ImageListFragment
+import com.stato.jewintage.util.ImageManager
 import com.stato.jewintage.util.ImagePicker
 import java.io.ByteArrayOutputStream
 import java.text.SimpleDateFormat
@@ -60,13 +61,12 @@ class EditItemAct : AppCompatActivity(), FragmentCloseInterface {
         edTIPrice.setText(addNom.price)
         edTIDate.setText(addNom.date)
         edTIquantity.setText(addNom.quantity)
+        ImageManager.fillImageArray(addNom, imageAdapter)
     }
 
     private fun init() {
-
         imageAdapter = ImageAdapter()
         binding.vpImages.adapter = imageAdapter
-
     }
 
     override fun onResume() {
@@ -131,6 +131,7 @@ class EditItemAct : AppCompatActivity(), FragmentCloseInterface {
 
     }
 
+
     fun onClickGetImages(view: View) {
         if (imageAdapter.mainArray.size == 0) {
             ImagePicker.getMultiImages(this,3)
@@ -142,14 +143,16 @@ class EditItemAct : AppCompatActivity(), FragmentCloseInterface {
     }
 
     fun onClickPublishNum(view: View) {
+        binding.progressLayout.visibility = View.VISIBLE
         addNom = fillAddNum()
         uploadImages()
     }
 
     private fun onPublishFinish(): DbManager.FinishWorkListener{
         return object: DbManager.FinishWorkListener{
-            override fun onFinish() {
-                finish()
+            override fun onFinish(isDone: Boolean) {
+                binding.progressLayout.visibility = View.GONE
+                if(isDone)finish()
             }
 
         }
@@ -178,6 +181,7 @@ class EditItemAct : AppCompatActivity(), FragmentCloseInterface {
 
     override fun onFragClose(list: ArrayList<Bitmap>) {
         binding.scrollViewMain.visibility = View.VISIBLE
+        binding.scrollbtnLayout.visibility = View.VISIBLE
         imageAdapter.update(list)
         chooseImageFrag = null
     }
@@ -187,6 +191,7 @@ class EditItemAct : AppCompatActivity(), FragmentCloseInterface {
         chooseImageFrag = ImageListFragment(this)
         if (newList != null)chooseImageFrag?.resizeSelectedImages(newList, true, this)
         binding.scrollViewMain.visibility = View.GONE
+        binding.scrollbtnLayout.visibility = View.GONE
         val fm = supportFragmentManager.beginTransaction()
         fm.replace(R.id.placeHolder, chooseImageFrag!!)
         fm.commit()

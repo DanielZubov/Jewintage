@@ -21,7 +21,7 @@ class DbManager {
                 .child(auth.uid!!)
                 .child(AD_NODE)
             .setValue(addNom).addOnCompleteListener {
-                    finishWorkListener.onFinish()
+                    finishWorkListener.onFinish(it.isSuccessful)
                 }
     }
 
@@ -38,7 +38,7 @@ class DbManager {
     fun deleteAd(addNom: AddNom, listener: FinishWorkListener){
         if (addNom.id == null || addNom.uid == null) return
         db.child(addNom.id).child(addNom.uid).removeValue().addOnCompleteListener {
-            if (it.isSuccessful) listener.onFinish()
+            if (it.isSuccessful) listener.onFinish(true)
 
         }
     }
@@ -64,7 +64,7 @@ class DbManager {
     }
 
     interface FinishWorkListener{
-        fun onFinish()
+        fun onFinish(isDone: Boolean)
     }
 
     companion object{

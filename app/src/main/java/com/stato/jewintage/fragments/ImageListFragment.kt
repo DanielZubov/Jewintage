@@ -65,7 +65,7 @@ class ImageListFragment(private val FragCloseInterface: FragmentCloseInterface
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        binding = FragmentImageListBinding.inflate(layoutInflater)
+        binding = FragmentImageListBinding.inflate(layoutInflater, container, false)
         return binding.root
     }
 

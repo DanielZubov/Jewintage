@@ -9,7 +9,11 @@ import android.widget.ImageView
 import androidx.core.net.toUri
 import androidx.exifinterface.media.ExifInterface
 import com.squareup.picasso.Picasso
+import com.stato.jewintage.adapters.ImageAdapter
+import com.stato.jewintage.model.AddNom
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.InputStream
@@ -76,7 +80,7 @@ object ImageManager {
         return@withContext bitmapList
     }
 
-    suspend fun getBitmapForUris(uris: List<String?>): List<Bitmap> = withContext(Dispatchers.IO) {
+    private suspend fun getBitmapForUris(uris: List<String?>): List<Bitmap> = withContext(Dispatchers.IO) {
 
         val bitmapList = ArrayList<Bitmap>()
         for (i in uris.indices) {
@@ -93,6 +97,14 @@ object ImageManager {
             }
         }
         return@withContext bitmapList
+    }
+
+    fun fillImageArray(ad: AddNom, adapter: ImageAdapter){
+        val listUris = listOf(ad.mainImage, ad.image2, ad.image3,)
+        CoroutineScope(Dispatchers.Main).launch {
+            val bitMapList = getBitmapForUris(listUris)
+            adapter.update(bitMapList as ArrayList<Bitmap>)
+        }
     }
 
 }

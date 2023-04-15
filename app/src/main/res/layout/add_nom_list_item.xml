@@ -51,8 +51,12 @@
                 android:id="@+id/tvNumItemDescription"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:ellipsize="end"
                 android:fontFamily="@font/comfortaa_bold"
+                android:maxLines="1"
                 android:text="TextView"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHorizontal_bias="0.0"
                 app:layout_constraintStart_toStartOf="@+id/tvNumItemCat"
                 app:layout_constraintTop_toBottomOf="@+id/tvNumItemCat" />
 
@@ -69,7 +73,7 @@
                 app:layout_constraintStart_toEndOf="@+id/ivNomItem"
                 app:layout_constraintTop_toTopOf="parent" />
 
-            <ImageView
+            <de.hdodenhof.circleimageview.CircleImageView
                 android:id="@+id/ivNomItem"
                 android:layout_width="90dp"
                 android:layout_height="90dp"

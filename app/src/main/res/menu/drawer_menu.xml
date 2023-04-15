@@ -20,16 +20,16 @@
     <item android:title="@string/account">
         <menu>
             <item
-                android:title="@string/reg_login"
                 android:id="@+id/signin"
-                android:icon="@drawable/google_button"/>
+                android:icon="@drawable/google_button"
+                android:title="@string/reg_login" />
             <item
-                android:title="@string/reg_logout"
                 android:id="@+id/logout"
-                android:icon="@drawable/ic_logout"/>
+                android:icon="@drawable/ic_logout"
+                android:title="@string/reg_logout" />
             <item
-                android:title="@string/reg_title"
-                android:id="@+id/register"/>
+                android:id="@+id/register"
+                android:title="@string/reg_title" />
 
         </menu>
     </item>

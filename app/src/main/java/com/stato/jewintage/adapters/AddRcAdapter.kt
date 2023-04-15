@@ -39,13 +39,13 @@ class AddRcAdapter(val act: MainActivity) : RecyclerView.Adapter<AddRcAdapter.Ad
         addArray.addAll(newList)
     }
 
-    class AdHolder(private val binding: AddNomListItemBinding, val act : MainActivity) : RecyclerView.ViewHolder(binding.root) {
+    class AdHolder(private val binding: AddNomListItemBinding, private val act : MainActivity) : RecyclerView.ViewHolder(binding.root) {
 
         fun setData(addNom: AddNom) = with(binding) {
             tvNumItemCat.text = addNom.category
             tvNumItemDescription.text = addNom.description
-            tvNumItemPrice.text = addNom.price
-            tvNumItemQuant.text = addNom.quantity
+            "₾ ${addNom.price}".also { tvNumItemPrice.text = it }
+            "${addNom.quantity} шт.".also { tvNumItemQuant.text = it }
             Picasso.get().load(addNom.mainImage).into(ivNomItem)
             showItems(isOwner(addNom))
             mainOnClick(addNom)
@@ -82,9 +82,11 @@ class AddRcAdapter(val act: MainActivity) : RecyclerView.Adapter<AddRcAdapter.Ad
 
         private fun showItems(isOwner: Boolean){
             if (isOwner){
-                binding.itemNum.visibility = View.VISIBLE
+                binding.ibDeleteItem.visibility = View.VISIBLE
+                binding.ibEditItem.visibility = View.VISIBLE
             } else {
-                binding.itemNum.visibility = View.GONE
+                binding.ibDeleteItem.visibility = View.GONE
+                binding.ibEditItem.visibility = View.GONE
             }
         }
 

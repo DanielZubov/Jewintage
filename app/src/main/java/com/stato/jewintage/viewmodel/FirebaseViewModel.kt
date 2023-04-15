@@ -27,7 +27,7 @@ class FirebaseViewModel : ViewModel() {
     }
     fun deleteItem(addNom: AddNom){
         dbManager.deleteAd(addNom, object : DbManager.FinishWorkListener{
-            override fun onFinish() {
+            override fun onFinish(isDone: Boolean) {
                 val updatedList = liveAdsData.value
                 updatedList?.remove(addNom)
                 liveAdsData.postValue(updatedList!!)

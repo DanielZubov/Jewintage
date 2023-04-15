@@ -7,6 +7,8 @@ import android.view.Menu
 import android.view.MenuItem
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AppCompatActivity
@@ -42,6 +44,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     var auth = Firebase.auth
     private val dialogHelper = DialogHelper(this)
     val adapter = AddRcAdapter(this)
+    lateinit var googleSignInLauncher: ActivityResultLauncher<Intent>
     private val firebaseViewModel : FirebaseViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -50,7 +53,6 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         setContentView(binding.root)
         auth = Firebase.auth
         init()
-//        initRecyclerView()
         initViewModel()
         firebaseViewModel.loadAllAds()
 
@@ -81,19 +83,20 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         return super.onCreateOptionsMenu(menu)
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        if (requestCode == GoogleAccConst.GOOGLE_REQUEST_CODE){
-            val task = GoogleSignIn.getSignedInAccountFromIntent(data)
+    private fun onActivityResult() {
+        googleSignInLauncher = registerForActivityResult(
+            ActivityResultContracts.StartActivityForResult()
+        ) {
+            val task = GoogleSignIn.getSignedInAccountFromIntent(it.data)
             try {
-                val account = task.getResult(ApiException :: class.java)
-                if (account != null){
+                val account = task.getResult(ApiException::class.java)
+                if (account != null) {
                     dialogHelper.accountHelper.signInFirebaseWithGoogle(account.idToken!!)
                 }
-            } catch (e: ApiException){
+            } catch (e: ApiException) {
                 Log.d("MyLog", "Api error : ${e.message}")
             }
         }
-        super.onActivityResult(requestCode, resultCode, data)
     }
 
     override fun onStart() {
@@ -108,6 +111,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
     private fun init(){
         setSupportActionBar(binding.includeToolbar.toolbar)
+        onActivityResult()
         val toggle = ActionBarDrawerToggle(this, binding.drawerLayout,binding.includeToolbar.toolbar, R.string.open, R.string.close)
         binding.drawerLayout.addDrawerListener(toggle)
         toggle.syncState()
@@ -115,17 +119,6 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         tvAccount = binding.navView.getHeaderView(0).findViewById(R.id.titleHeader)
         userPhotoImageView = binding.navView.getHeaderView(0).findViewById(R.id.profileImg)
     }
-
-//    private fun initRecyclerView() = with(binding){
-//            includeToolbar.contentNum.rcViewCM.layoutManager = LinearLayoutManager(this@MainActivity)
-//            includeToolbar.contentNum.rcViewCM.adapter = adapter
-//
-//
-//    }
-
-
-
-
 
 
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
@@ -146,11 +139,21 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         return true
     }
 
+
     fun uiUpdate(user:FirebaseUser?){
+        val signInItem = binding.navView.menu.findItem(R.id.signin)
+        val logOutItem = binding.navView.menu.findItem(R.id.logout)
+        val registerItem = binding.navView.menu.findItem(R.id.register)
         if (user == null){
+            signInItem.isVisible = true
+            registerItem.isVisible = true
+            logOutItem.isVisible = false
             tvAccount.text = resources.getString(R.string.reg_not)
             userPhotoImageView.setImageResource(R.drawable.ic_acc)
         } else {
+            signInItem.isVisible = false
+            registerItem.isVisible = false
+            logOutItem.isVisible = true
             // Получаем ссылку на авторизованного пользователя Firebase
             val currentUser = FirebaseAuth.getInstance().currentUser
 // Если пользователь авторизован, заполняем Views данными из его профиля
