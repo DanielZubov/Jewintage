@@ -31,7 +31,6 @@
                 android:layout_marginTop="32dp"
                 android:layout_marginEnd="16dp"
                 android:hint="@string/category"
-                app:helperText="Обязательное поле*"
                 app:helperTextTextColor="@color/design_default_color_error"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
@@ -151,7 +150,6 @@
                 app:endIconMode="clear_text"
                 app:errorEnabled="true"
                 app:errorIconDrawable="@drawable/baseline_error_outline_24"
-                app:helperText="Обязательное поле*"
                 app:helperTextTextColor="@color/design_default_color_error"
                 app:layout_constraintEnd_toEndOf="@id/layoutTINumCategory"
                 app:layout_constraintStart_toStartOf="@id/layoutTINumCategory"
@@ -183,7 +181,8 @@
                     android:id="@+id/edTIDate"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:inputType="none" />
+                    android:inputType="none"
+                    tools:ignore="SpeakableTextPresentCheck" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <com.google.android.material.textfield.TextInputLayout
@@ -198,7 +197,6 @@
                 app:endIconMode="clear_text"
                 app:errorEnabled="true"
                 app:errorIconDrawable="@drawable/baseline_error_outline_24"
-                app:helperText="Обязательное поле*"
                 app:helperTextTextColor="@color/design_default_color_error"
                 app:layout_constraintEnd_toEndOf="@id/layoutTINumCategory"
                 app:layout_constraintStart_toStartOf="@id/layoutTINumCategory"

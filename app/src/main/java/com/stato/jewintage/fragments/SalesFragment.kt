@@ -7,8 +7,12 @@ import android.view.View
 import android.view.ViewGroup
 import com.stato.jewintage.MainActivity
 import com.stato.jewintage.R
+import com.stato.jewintage.databinding.FragmentNomenclatureBinding
+import com.stato.jewintage.databinding.FragmentSalesBinding
 
 class SalesFragment : Fragment() {
+    private var _binding: FragmentSalesBinding? = null
+    private val binding get() = _binding!!
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -18,8 +22,9 @@ class SalesFragment : Fragment() {
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
-        return inflater.inflate(R.layout.fragment_sales, container, false)
+    ): View {
+        _binding = FragmentSalesBinding.inflate(inflater, container, false)
+        return binding.root
     }
 
 }

@@ -141,11 +141,48 @@ class EditItemAct : AppCompatActivity(), FragmentCloseInterface {
         }
 
     }
+    private fun validateFields(): Boolean {
+        var isValid = true
+
+        if (binding.edTICategory.text?.isEmpty() == true) {
+            binding.layoutTINumCategory.error = "Поле не может быть пустым"
+            isValid = false
+        } else {
+            binding.layoutTINumCategory.error = null
+        }
+
+        if (binding.edTIPrice.text?.isEmpty() == true) {
+            binding.layoutTIPrice.error = "Поле не может быть пустым"
+            isValid = false
+        } else {
+            binding.layoutTIPrice.error = null
+        }
+
+        if (binding.edTIDate.text?.isEmpty() == true) {
+            binding.layoutTIDate.error = "Поле не может быть пустым"
+            isValid = false
+        } else {
+            binding.layoutTIDate.error = null
+        }
+
+        if (binding.edTIquantity.text?.isEmpty() == true) {
+            binding.layoutTIquantity.error = "Поле не может быть пустым"
+            isValid = false
+        } else {
+            binding.layoutTIquantity.error = null
+        }
+
+        return isValid
+    }
+
+
 
     fun onClickPublishNum(view: View) {
+        if (validateFields()) {
         binding.progressLayout.visibility = View.VISIBLE
         addNom = fillAddNum()
         uploadImages()
+        }
     }
 
     private fun onPublishFinish(): DbManager.FinishWorkListener{
@@ -213,7 +250,6 @@ class EditItemAct : AppCompatActivity(), FragmentCloseInterface {
                 }
             } else {
                 uploadImage(byteArray) {
-//            dbManager.publishAdd(addNom!!, onPublishFinish())
                     nextImage(it.result.toString())
                 }
             }
