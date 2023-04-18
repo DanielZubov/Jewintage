@@ -4,6 +4,7 @@ import android.content.Intent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageButton
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.squareup.picasso.Picasso
@@ -13,16 +14,17 @@ import com.stato.jewintage.MainActivity
 import com.stato.jewintage.constance.MainConst
 import com.stato.jewintage.model.AddNom
 import com.stato.jewintage.databinding.AddNomListItemBinding
-import com.stato.jewintage.fragments.NomenclatureFragment
 
-class AddRcAdapter(val act: MainActivity) : RecyclerView.Adapter<AddRcAdapter.AdHolder>() {
+class AddRcAdapter(val act: MainActivity, private val sellButtonClickListener: SellButtonClickListener) : RecyclerView.Adapter<AddRcAdapter.AdHolder>() {
     val addArray = ArrayList<AddNom>()
+
 
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): AdHolder {
         val binding = AddNomListItemBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-        return AdHolder(binding, act)
+        return AdHolder(binding, act, sellButtonClickListener)
     }
+
 
     override fun getItemCount(): Int {
         return addArray.size
@@ -39,7 +41,7 @@ class AddRcAdapter(val act: MainActivity) : RecyclerView.Adapter<AddRcAdapter.Ad
         addArray.addAll(newList)
     }
 
-    class AdHolder(private val binding: AddNomListItemBinding, private val act : MainActivity) : RecyclerView.ViewHolder(binding.root) {
+    class AdHolder(private val binding: AddNomListItemBinding, private val act: MainActivity, private val sellButtonClickListener: SellButtonClickListener) : RecyclerView.ViewHolder(binding.root) {
 
         fun setData(addNom: AddNom) = with(binding) {
             tvNumItemCat.text = addNom.category
@@ -49,8 +51,10 @@ class AddRcAdapter(val act: MainActivity) : RecyclerView.Adapter<AddRcAdapter.Ad
             Picasso.get().load(addNom.mainImage).into(ivNomItem)
             showItems(isOwner(addNom))
             mainOnClick(addNom)
-
-
+            ibSellItem.setOnClickListener { onSellButtonClick(addNom) }
+        }
+        private fun onSellButtonClick(addNom: AddNom) {
+            sellButtonClickListener.onSellButtonClick(addNom)
         }
 
         private fun mainOnClick(addNom: AddNom) = with(binding){
@@ -90,9 +94,15 @@ class AddRcAdapter(val act: MainActivity) : RecyclerView.Adapter<AddRcAdapter.Ad
             }
         }
 
+
     }
     interface DeleteItemListener{
         fun onDeleteItem(addNom: AddNom)
     }
+    interface SellButtonClickListener {
+        fun onSellButtonClick(addNom: AddNom)
+    }
+
+
 
 }

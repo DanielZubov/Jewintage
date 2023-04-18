@@ -26,7 +26,7 @@
             android:layout_margin="5dp">
 
             <TextView
-                android:id="@+id/tvNumItemPrice"
+                android:id="@+id/tvSaleItemSum"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_margin="5dp"
@@ -39,16 +39,16 @@
                 app:layout_constraintTop_toTopOf="parent" />
 
             <TextView
-                android:id="@+id/tvNumItemQuant"
+                android:id="@+id/tvSaleItemQuant"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:fontFamily="@font/comfortaa_bold"
                 android:text="TextView"
-                app:layout_constraintStart_toStartOf="@+id/tvNumItemCat"
-                app:layout_constraintTop_toBottomOf="@+id/tvNumItemDescription" />
+                app:layout_constraintStart_toStartOf="@+id/tvSaleItemCat"
+                app:layout_constraintTop_toBottomOf="@+id/tvSaleItemDescription" />
 
             <TextView
-                android:id="@+id/tvNumItemDescription"
+                android:id="@+id/tvSaleItemDescription"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:ellipsize="end"
@@ -57,11 +57,11 @@
                 android:text="TextView"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintHorizontal_bias="0.0"
-                app:layout_constraintStart_toStartOf="@+id/tvNumItemCat"
-                app:layout_constraintTop_toBottomOf="@+id/tvNumItemCat" />
+                app:layout_constraintStart_toStartOf="@+id/tvSaleItemCat"
+                app:layout_constraintTop_toBottomOf="@+id/tvSaleItemCat" />
 
             <TextView
-                android:id="@+id/tvNumItemCat"
+                android:id="@+id/tvSaleItemCat"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="5dp"
@@ -70,11 +70,11 @@
                 android:text="TextView"
                 android:textAllCaps="true"
                 android:textStyle="bold"
-                app:layout_constraintStart_toEndOf="@+id/ivNomItem"
+                app:layout_constraintStart_toEndOf="@+id/ivSaleItem"
                 app:layout_constraintTop_toTopOf="parent" />
 
             <de.hdodenhof.circleimageview.CircleImageView
-                android:id="@+id/ivNomItem"
+                android:id="@+id/ivSaleItem"
                 android:layout_width="90dp"
                 android:layout_height="90dp"
                 android:scaleType="centerCrop"
@@ -104,16 +104,6 @@
                 app:layout_constraintTop_toTopOf="@+id/ibDeleteItem"
                 app:srcCompat="@drawable/ic_description" />
 
-            <ImageButton
-                android:id="@+id/ibSellItem"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:background="@android:color/transparent"
-                android:contentDescription="@string/delete"
-                app:layout_constraintBottom_toBottomOf="@+id/ibEditItem"
-                app:layout_constraintEnd_toStartOf="@+id/ibEditItem"
-                app:layout_constraintTop_toTopOf="@+id/ibEditItem"
-                app:srcCompat="@drawable/ic_saleitem" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 

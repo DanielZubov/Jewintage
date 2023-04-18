@@ -5,12 +5,18 @@ import android.os.Bundle
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
+import android.widget.Button
+import android.widget.EditText
 import android.widget.ImageView
+import android.widget.RadioButton
+import android.widget.RadioGroup
 import android.widget.TextView
+import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.ActionBarDrawerToggle
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.GravityCompat
 import androidx.navigation.NavController
@@ -26,6 +32,8 @@ import com.google.android.material.navigation.NavigationView
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.ktx.auth
+import com.google.firebase.database.DatabaseReference
+import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.ktx.Firebase
 import com.stato.jewintage.adapters.AddRcAdapter
 import com.stato.jewintage.databinding.ActivityMainBinding
@@ -33,9 +41,11 @@ import com.stato.jewintage.dialogHelper.DialogConst
 import com.stato.jewintage.dialogHelper.DialogHelper
 import com.stato.jewintage.dialogHelper.GoogleAccConst
 import com.stato.jewintage.model.AddNom
+import com.stato.jewintage.model.AddSales
+import com.stato.jewintage.model.DbManager
 import com.stato.jewintage.viewmodel.FirebaseViewModel
 
-class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener, AddRcAdapter.DeleteItemListener  {
+class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener, AddRcAdapter.DeleteItemListener, AddRcAdapter.SellButtonClickListener  {
     private lateinit var binding : ActivityMainBinding
     private lateinit var tvAccount : TextView
     private lateinit var userPhotoImageView : ImageView
@@ -43,9 +53,12 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     private lateinit var navController: NavController
     var auth = Firebase.auth
     private val dialogHelper = DialogHelper(this)
-    val adapter = AddRcAdapter(this)
+    val adapter = AddRcAdapter(this, this)
     lateinit var googleSignInLauncher: ActivityResultLauncher<Intent>
     private val firebaseViewModel : FirebaseViewModel by viewModels()
+    private lateinit var database: FirebaseDatabase
+    private lateinit var salesRef: DatabaseReference
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -167,6 +180,69 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         }
     }
 
+    private fun showSellDialog(addNom: AddNom) {
+        val builder = AlertDialog.Builder(this)
+        val inflater = layoutInflater
+        val dialogView = inflater.inflate(R.layout.dialog_sell, null)
+
+        val etQuantity = dialogView.findViewById<EditText>(R.id.etQuantity)
+        val rgPaymentMethod = dialogView.findViewById<RadioGroup>(R.id.rgPaymentMethod)
+        val btnSubmitSell = dialogView.findViewById<Button>(R.id.btnSubmitSell)
+
+        builder.setView(dialogView)
+        val dialog = builder.create()
+        dialog.show()
+
+        btnSubmitSell.setOnClickListener {
+            val quantity = etQuantity.text.toString()
+            val selectedPaymentMethodId = rgPaymentMethod.checkedRadioButtonId
+            val radioButton = dialogView.findViewById<RadioButton>(selectedPaymentMethodId)
+            val paymentMethod = radioButton.text.toString()
+
+            if (quantity.isNotBlank() && selectedPaymentMethodId != -1) {
+                saveSaleData(addNom, quantity, paymentMethod)
+                dialog.dismiss()
+            } else {
+                Toast.makeText(this, "Заполните все поля", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    private fun saveSaleData(addNom: AddNom, quantity: String, paymentMethod: String) {
+        val firebaseUser = auth.currentUser
+        if (firebaseUser != null) {
+            val uid = firebaseUser.uid
+            val sale = AddSales(
+                category = addNom.category,
+                description = addNom.description,
+                price = addNom.price,
+                date = addNom.date,
+                mainImage = addNom.mainImage,
+                image2 = addNom.image2,
+                image3 = addNom.image3,
+                soldQuantity = quantity,
+                paymentMethod = paymentMethod,
+                id = addNom.id,
+                uid = uid
+            )
+
+            val dbManager = DbManager()
+            dbManager.saveSale(sale, object : DbManager.FinishWorkListener {
+                override fun onFinish(isDone: Boolean) {
+                    if (isDone) {
+                        Toast.makeText(this@MainActivity, "Данные продажи успешно сохранены", Toast.LENGTH_SHORT).show()
+                    } else {
+                        Toast.makeText(this@MainActivity, "Ошибка при сохранении данных продажи", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            })
+        } else {
+            Toast.makeText(this, "Пользователь не авторизован", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+
+
     companion object{
         const val EDIT_STATE = "edit_state"
         const val ADS_DATA = "ads_data"
@@ -174,6 +250,10 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
     override fun onDeleteItem(addNom: AddNom) {
         firebaseViewModel.deleteItem(addNom)
+    }
+
+    override fun onSellButtonClick(addNom: AddNom) {
+        showSellDialog(addNom)
     }
 
 
