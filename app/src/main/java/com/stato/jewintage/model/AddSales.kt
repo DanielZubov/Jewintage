@@ -13,5 +13,27 @@ data class AddSales(
     val soldQuantity: String? = null,
     val paymentMethod: String? = null,
     val id: String? = null,
-    val uid: String? = null
-) : Serializable
+    val uid: String? = null,
+    var idItem: String? = null
+) : Serializable {
+
+    // Добавьте функцию для преобразования AddSales в Map
+    fun toMap(): Map<String, Any?> {
+        return mapOf(
+            "category" to category,
+            "description" to description,
+            "price" to price,
+            "date" to date,
+            "mainImage" to mainImage,
+            "image2" to image2,
+            "image3" to image3,
+            "soldQuantity" to soldQuantity,
+            "paymentMethod" to paymentMethod,
+            "id" to id,
+            "uid" to uid,
+            "idItem" to idItem
+        )
+    }
+}
+
+

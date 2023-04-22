@@ -3,7 +3,8 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_height="match_parent"
-    android:layout_width="match_parent">
+    android:layout_width="match_parent"
+    tools:context=".DescriptionActivity">
 
     <ScrollView
         android:layout_width="match_parent"
@@ -13,8 +14,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="8dp"
-            tools:context=".DescriptionActivity">
+            android:padding="8dp">
 
             <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
@@ -168,6 +168,16 @@
         app:layout_constraintTop_toTopOf="parent">
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/btnDesSell"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:clickable="true"
+            app:layout_constraintBottom_toTopOf="@+id/btnDesDel"
+            app:layout_constraintEnd_toEndOf="@+id/btnDesEdit"
+            app:srcCompat="@drawable/ic_saleitem" />
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/btnDesEdit"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -183,7 +193,7 @@
             android:id="@+id/btnDesDel"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
+            android:layout_marginBottom="8dp"
             android:clickable="true"
             android:contentDescription="@string/Hello"
             app:layout_constraintBottom_toTopOf="@+id/btnDesEdit"

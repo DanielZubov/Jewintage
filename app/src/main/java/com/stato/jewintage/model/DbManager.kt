@@ -26,19 +26,20 @@ class DbManager {
                 if (it.isSuccessful) listener.onFinish(true)
             }
     }
+
     fun publishAdd(addNom: AddNom, finishWorkListener: FinishWorkListener) {
         if (auth.uid != null)
             db.child(addNom.id ?: "empty")
                 .child(auth.uid!!)
                 .child(AD_NODE)
-            .setValue(addNom).addOnCompleteListener {
+                .setValue(addNom).addOnCompleteListener {
                     finishWorkListener.onFinish(it.isSuccessful)
                 }
     }
 
     fun saveSale(sale: AddSales, onFinish: FinishWorkListener) {
-        val saleRef = dbSales.push()
-        saleRef.setValue(sale).addOnCompleteListener { task ->
+        val saleRef = dbSales.child(sale.idItem!!)
+        saleRef.setValue(sale.toMap()).addOnCompleteListener { task ->
             if (task.isSuccessful) {
                 onFinish.onFinish(true)
             } else {
@@ -47,11 +48,11 @@ class DbManager {
         }
     }
 
-
-    fun getAllAds(readDataCallBack: ReadDataCallBack?){
+    fun getAllAds(readDataCallBack: ReadDataCallBack?) {
         val query = db.orderByChild(auth.uid + "/Item/date")
         readDataFromDb(query, readDataCallBack)
     }
+
     fun getAllSales(callback: ReadSalesDataCallback) {
         dbSales.addValueEventListener(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
@@ -71,7 +72,7 @@ class DbManager {
         })
     }
 
-    fun deleteAd(addNom: AddNom, listener: FinishWorkListener){
+    fun deleteAd(addNom: AddNom, listener: FinishWorkListener) {
         if (addNom.id == null || addNom.uid == null) return
         db.child(addNom.id).child(addNom.uid).removeValue().addOnCompleteListener {
             if (it.isSuccessful) listener.onFinish(true)
@@ -79,7 +80,21 @@ class DbManager {
         }
     }
 
-    private fun readDataFromDb(query : Query, readDataCallBack: ReadDataCallBack?) {
+    fun deleteSellAd(addSales: AddSales, onFinish: FinishWorkListener) {
+        if (addSales.idItem != null) {
+            dbSales.child(addSales.idItem!!).removeValue().addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    onFinish.onFinish(true)
+                } else {
+                    onFinish.onFinish(false)
+                }
+            }
+        } else {
+            onFinish.onFinish(false)
+        }
+    }
+
+    private fun readDataFromDb(query: Query, readDataCallBack: ReadDataCallBack?) {
         query.addValueEventListener(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 val addArray = ArrayList<AddNom>()
@@ -94,7 +109,14 @@ class DbManager {
             override fun onCancelled(error: DatabaseError) {}
         })
     }
-    fun findSaleByDate(uid: String, itemId: String, saleDate: String, listener: FindSaleListener) {
+
+    fun findSaleByDate(
+        uid: String,
+        itemId: String,
+        saleDate: String,
+        paymentMethod: String,
+        listener: FindSaleListener
+    ) {
         val saleReference = dbSales.orderByChild("uid").equalTo(uid)
 
         saleReference.addListenerForSingleValueEvent(object : ValueEventListener {
@@ -102,7 +124,7 @@ class DbManager {
                 for (snapshot in dataSnapshot.children) {
                     val sale = snapshot.getValue(AddSales::class.java)
 
-                    if (sale?.id == itemId && sale.date == saleDate) {
+                    if (sale?.id == itemId && sale.date == saleDate && sale.paymentMethod == paymentMethod) {
                         listener.onFinish(snapshot.key, sale)
                         return
                     }
@@ -116,9 +138,6 @@ class DbManager {
             }
         })
     }
-
-
-
 
     fun updateSaleQuantityAndPrice(
         saleKey: String,
@@ -142,34 +161,25 @@ class DbManager {
         }
     }
 
-
-
-
-
     interface FindSaleListener {
         fun onFinish(saleKey: String?, sale: AddSales?)
     }
-
-
-    interface SaleDataListener {
-        fun onSaleDataReceived(sale: AddSales?)
-    }
-
 
     interface ReadDataCallBack {
         fun readData(list: ArrayList<AddNom>)
 
     }
+
     interface ReadSalesDataCallback {
         fun readData(list: ArrayList<AddSales>)
     }
 
-    interface FinishWorkListener{
+    interface FinishWorkListener {
         fun onFinish(isDone: Boolean)
     }
 
 
-    companion object{
+    companion object {
         const val AD_NODE = "Item"
         const val MAIN_NODE = "Nomenclature"
         const val SALE_NODE = "Sales"

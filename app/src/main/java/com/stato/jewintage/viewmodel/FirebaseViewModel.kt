@@ -1,6 +1,5 @@
 package com.stato.jewintage.viewmodel
 
-import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.stato.jewintage.model.AddNom
@@ -12,17 +11,17 @@ class FirebaseViewModel : ViewModel() {
     val liveAdsData = MutableLiveData<ArrayList<AddNom>>()
     val liveSalesData = MutableLiveData<ArrayList<AddSales>>()
 
-    fun updateNom(updatedNom: AddNom) {
-        val ref = dbManager.dbSales.child(updatedNom.id!!)
-
-        ref.setValue(updatedNom)
-            .addOnSuccessListener {
-                Log.d("UpdateNom", "DocumentSnapshot successfully updated!")
-            }
-            .addOnFailureListener { e ->
-                Log.w("UpdateNom", "Error updating document", e)
-            }
-    }
+//    fun updateNom(updatedNom: AddNom) {
+//        val ref = dbManager.dbSales.child(updatedNom.id!!)
+//
+//        ref.setValue(updatedNom)
+//            .addOnSuccessListener {
+//                Log.d("UpdateNom", "DocumentSnapshot successfully updated!")
+//            }
+//            .addOnFailureListener { e ->
+//                Log.w("UpdateNom", "Error updating document", e)
+//            }
+//    }
 
 
     fun loadAllSales() {
@@ -48,6 +47,15 @@ class FirebaseViewModel : ViewModel() {
                 val updatedList = liveAdsData.value
                 updatedList?.remove(addNom)
                 liveAdsData.postValue(updatedList!!)
+            }
+        })
+    }
+    fun deleteSellItem(addSales: AddSales){
+        dbManager.deleteSellAd(addSales, object : DbManager.FinishWorkListener{
+            override fun onFinish(isDone: Boolean) {
+                val updatedList = liveSalesData.value
+                updatedList?.remove(addSales)
+                liveSalesData.postValue(updatedList!!)
             }
         })
     }

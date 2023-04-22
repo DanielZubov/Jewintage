@@ -10,17 +10,17 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.widget.doOnTextChanged
 import com.google.android.gms.tasks.OnCompleteListener
 import com.stato.jewintage.adapters.ImageAdapter
-import com.stato.jewintage.model.AddNom
 import com.stato.jewintage.databinding.ActivityEditItemBinding
-import com.stato.jewintage.model.DbManager
 import com.stato.jewintage.fragments.FragmentCloseInterface
 import com.stato.jewintage.fragments.ImageListFragment
+import com.stato.jewintage.model.AddNom
+import com.stato.jewintage.model.DbManager
 import com.stato.jewintage.util.ImageManager
 import com.stato.jewintage.util.ImagePicker
 import java.io.ByteArrayOutputStream
 import java.text.SimpleDateFormat
-import java.util.*
-import kotlin.collections.ArrayList
+import java.util.Calendar
+import java.util.Locale
 
 
 class EditItemAct : AppCompatActivity(), FragmentCloseInterface {

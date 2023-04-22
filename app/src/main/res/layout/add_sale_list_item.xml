@@ -7,7 +7,7 @@
     android:layout_height="wrap_content">
 
     <androidx.cardview.widget.CardView
-        android:id="@+id/cvItem"
+        android:id="@+id/cvSlItem"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="5dp"
@@ -84,7 +84,7 @@
                 tools:srcCompat="@drawable/image_item" />
 
             <ImageButton
-                android:id="@+id/ibDeleteItem"
+                android:id="@+id/ibDeleteSlItem"
                 android:layout_width="40dp"
                 android:layout_height="40dp"
                 android:background="@android:color/transparent"
@@ -94,15 +94,23 @@
                 app:srcCompat="@drawable/ic_del_item" />
 
             <ImageButton
-                android:id="@+id/ibEditItem"
+                android:id="@+id/ibEditSlItem"
                 android:layout_width="40dp"
                 android:layout_height="40dp"
                 android:background="@android:color/transparent"
                 android:contentDescription="@string/delete"
-                app:layout_constraintBottom_toBottomOf="@+id/ibDeleteItem"
-                app:layout_constraintEnd_toStartOf="@+id/ibDeleteItem"
-                app:layout_constraintTop_toTopOf="@+id/ibDeleteItem"
+                app:layout_constraintBottom_toBottomOf="@+id/ibDeleteSlItem"
+                app:layout_constraintEnd_toStartOf="@+id/ibDeleteSlItem"
+                app:layout_constraintTop_toTopOf="@+id/ibDeleteSlItem"
                 app:srcCompat="@drawable/ic_description" />
+
+            <TextView
+                android:id="@+id/tvPaymentMethod"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="TextView"
+                app:layout_constraintEnd_toEndOf="@+id/tvSaleItemSum"
+                app:layout_constraintTop_toBottomOf="@+id/tvSaleItemSum" />
 
 
         </androidx.constraintlayout.widget.ConstraintLayout>

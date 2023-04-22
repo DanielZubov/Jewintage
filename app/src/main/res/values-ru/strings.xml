@@ -9,4 +9,5 @@
     <string name="costFragment">Расходы</string>
     <string name="delete">Удалить</string>
     <string name="uploadPhoto">Обработка фото, подождите...</string>
+    <string name="search">Поиск</string>
 </resources>

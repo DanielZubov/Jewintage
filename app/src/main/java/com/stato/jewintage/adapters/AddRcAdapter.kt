@@ -1,10 +1,10 @@
 package com.stato.jewintage.adapters
 
 import android.content.Intent
+import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageButton
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.squareup.picasso.Picasso
@@ -12,8 +12,9 @@ import com.stato.jewintage.DescriptionActivity
 import com.stato.jewintage.EditItemAct
 import com.stato.jewintage.MainActivity
 import com.stato.jewintage.constance.MainConst
-import com.stato.jewintage.model.AddNom
 import com.stato.jewintage.databinding.AddNomListItemBinding
+import com.stato.jewintage.model.AddNom
+import java.util.Locale
 
 class AddRcAdapter(val act: MainActivity, private val sellButtonClickListener: SellButtonClickListener) : RecyclerView.Adapter<AddRcAdapter.AdHolder>() {
     val addArray = ArrayList<AddNom>()
@@ -23,6 +24,22 @@ class AddRcAdapter(val act: MainActivity, private val sellButtonClickListener: S
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): AdHolder {
         val binding = AddNomListItemBinding.inflate(LayoutInflater.from(parent.context), parent, false)
         return AdHolder(binding, act, sellButtonClickListener)
+    }
+
+
+    fun filter(query: String) {
+        val filteredList = ArrayList<AddNom>()
+        val lowercasedQuery = query.lowercase()
+
+        for (item in addArray) {
+            val description = item.description?.lowercase()
+            val category = item.category?.lowercase()
+
+            if (description?.contains(lowercasedQuery) == true || category?.contains(lowercasedQuery) == true) {
+                filteredList.add(item)
+            }
+        }
+        updateAdapter(filteredList)
     }
 
 
@@ -44,6 +61,10 @@ class AddRcAdapter(val act: MainActivity, private val sellButtonClickListener: S
     class AdHolder(private val binding: AddNomListItemBinding, private val act: MainActivity, private val sellButtonClickListener: SellButtonClickListener) : RecyclerView.ViewHolder(binding.root) {
 
         fun setData(addNom: AddNom) = with(binding) {
+            if (addNom.quantity == "0") {
+                cvItem.setCardBackgroundColor(Color.LTGRAY)
+                ibSellItem.visibility = View.GONE
+            }
             tvNumItemCat.text = addNom.category
             tvNumItemDescription.text = addNom.description
             "₾ ${addNom.price}".also { tvNumItemPrice.text = it }

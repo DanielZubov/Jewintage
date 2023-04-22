@@ -5,25 +5,27 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.ViewModelProvider
+import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.stato.jewintage.MainActivity
 import com.stato.jewintage.databinding.FragmentSalesBinding
-import com.stato.jewintage.viewmodel.SalesViewModel
+import com.stato.jewintage.model.AddSales
+import com.stato.jewintage.viewmodel.FirebaseViewModel
 
 class SalesFragment : Fragment() {
-    private lateinit var viewModel: SalesViewModel
+    private var _binding: FragmentSalesBinding? = null
+    private val binding get() = _binding!!
     private lateinit var salesAdapter: SalesAdapter
     private lateinit var swipeRefreshLayout: SwipeRefreshLayout
+    private val firebaseViewModel: FirebaseViewModel by viewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        val binding = FragmentSalesBinding.inflate(inflater, container, false)
-
+        _binding = FragmentSalesBinding.inflate(inflater, container, false)
 
         swipeRefreshLayout = binding.SalesFrag
 
@@ -39,8 +41,7 @@ class SalesFragment : Fragment() {
             android.R.color.holo_red_light
         )
 
-        viewModel = ViewModelProvider(this).get(SalesViewModel::class.java)
-        salesAdapter = SalesAdapter(act = MainActivity())
+        salesAdapter = SalesAdapter(act = requireActivity() as MainActivity)
 
         binding.rcViewSales.layoutManager = LinearLayoutManager(context)
         binding.rcViewSales.adapter = salesAdapter
@@ -48,12 +49,17 @@ class SalesFragment : Fragment() {
 
         return binding.root
     }
+
     private fun updateUi() {
-        viewModel.liveSalesData.observe(viewLifecycleOwner) { salesList ->
+        firebaseViewModel.liveSalesData.observe(viewLifecycleOwner) { salesList ->
             salesAdapter.updateSales(salesList)
         }
 
-        viewModel.loadAllSales()
+        firebaseViewModel.loadAllSales()
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 }
-

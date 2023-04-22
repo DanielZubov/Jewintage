@@ -1,8 +1,11 @@
 package com.stato.jewintage.fragments
 
 import android.app.DatePickerDialog
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
+import android.view.Menu
+import android.view.MenuInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.AutoCompleteTextView
@@ -11,6 +14,7 @@ import android.widget.RadioButton
 import android.widget.RadioGroup
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.widget.SearchView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -18,6 +22,7 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.google.android.material.textfield.TextInputEditText
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
+import com.stato.jewintage.EditItemAct
 import com.stato.jewintage.MainActivity
 import com.stato.jewintage.R
 import com.stato.jewintage.adapters.AddRcAdapter
@@ -32,20 +37,21 @@ import java.util.Locale
 
 class NomenclatureFragment : Fragment(), AddRcAdapter.SellButtonClickListener {
     private var _binding: FragmentNomenclatureBinding? = null
-    private var auth = Firebase.auth
     private val binding get() = _binding!!
+    private var auth = Firebase.auth
     private lateinit var adapter: AddRcAdapter
     private val firebaseViewModel: FirebaseViewModel by viewModels()
     private lateinit var swipeRefreshLayout: SwipeRefreshLayout
-
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
+        @Suppress("DEPRECATION")
+        setHasOptionsMenu(true)
         _binding = FragmentNomenclatureBinding.inflate(inflater, container, false)
-        val view = binding.root
+
         swipeRefreshLayout = binding.nomenclatureFrag
 
         swipeRefreshLayout.setOnRefreshListener {
@@ -66,13 +72,65 @@ class NomenclatureFragment : Fragment(), AddRcAdapter.SellButtonClickListener {
         // Инициализация ViewModel и обновление адаптера
         initViewModel()
         firebaseViewModel.loadAllAds()
-        return view
+        return binding.root
     }
+
+    private fun onClickAddNewNom() {
+        val i = Intent(requireActivity() as MainActivity, EditItemAct::class.java)
+        startActivity(i)
+    }
+
+    @Deprecated("Deprecated in Java")
+    override fun onCreateOptionsMenu(menu: Menu, menuInflater: MenuInflater) {
+        menuInflater.inflate(R.menu.options, menu)
+        val searchItem = menu.findItem(R.id.actionSearch)
+        val searchView = searchItem.actionView as SearchView
+
+        searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(query: String?): Boolean {
+                return false
+            }
+
+            override fun onQueryTextChange(newText: String?): Boolean {
+                if (newText != null) {
+                    adapter.filter(newText)
+                }
+                return false
+            }
+        })
+
+        @Suppress("DEPRECATION")
+        super.onCreateOptionsMenu(menu, menuInflater)
+    }
+
+//    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+//        inflater.inflate(R.menu.options, menu) // замените menu_name на имя вашего меню
+//        val searchItem = menu.findItem(R.id.action_search)
+//        val searchView = searchItem.actionView as SearchView
+//
+//        searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+//            override fun onQueryTextSubmit(query: String?): Boolean {
+//                return false
+//            }
+//
+//            override fun onQueryTextChange(newText: String?): Boolean {
+//                if (newText != null) {
+//                    adapter.filter(newText)
+//                }
+//                return false
+//            }
+//        })
+//
+//        super.onCreateOptionsMenu(menu, inflater)
+//    }
 
     private fun setupRecyclerView() {
         adapter = AddRcAdapter(requireActivity() as MainActivity, this)
         binding.rcViewNomenclature.layoutManager = LinearLayoutManager(requireContext())
         binding.rcViewNomenclature.adapter = adapter
+        binding.fbAddNom.setOnClickListener {
+            onClickAddNewNom()
+        }
     }
 
     private fun initViewModel() {
@@ -88,70 +146,6 @@ class NomenclatureFragment : Fragment(), AddRcAdapter.SellButtonClickListener {
         _binding = null
     }
 
-//    private fun createNewSale(
-//        addNom: AddNom,
-//        quantity: String,
-//        sellPrice: String,
-//        sellDate: String,
-//        paymentMethod: String
-//    ) {
-//        val firebaseUser = auth.currentUser
-//        if (firebaseUser != null) {
-//            val uid = firebaseUser.uid
-//            val sale = AddSales(
-//                category = addNom.category,
-//                description = addNom.description,
-//                price = sellPrice,
-//                date = sellDate,
-//                mainImage = addNom.mainImage,
-//                image2 = addNom.image2,
-//                image3 = addNom.image3,
-//                soldQuantity = quantity,
-//                paymentMethod = paymentMethod,
-//                id = addNom.id,
-//                uid = uid
-//            )
-//
-//            val dbManager = DbManager()
-//            dbManager.saveSale(sale, object : DbManager.FinishWorkListener {
-//                override fun onFinish(isDone: Boolean) {
-//                    if (isDone) {
-//                        // Обновление количества товара после продажи
-//                        val newQuantity = (addNom.quantity!!.toInt() - quantity.toInt()).toString()
-//                        dbManager.updateQuantity(
-//                            addNom,
-//                            newQuantity,
-//                            object : DbManager.FinishWorkListener {
-//                                override fun onFinish(isDone: Boolean) {
-//                                    if (isDone) {
-//                                        Toast.makeText(
-//                                            requireActivity() as MainActivity,
-//                                            "Данные продажи успешно сохранены",
-//                                            Toast.LENGTH_SHORT
-//                                        ).show()
-//                                    } else {
-//                                        Toast.makeText(
-//                                            requireActivity() as MainActivity,
-//                                            "Ошибка при обновлении количества товара",
-//                                            Toast.LENGTH_SHORT
-//                                        ).show()
-//                                    }
-//                                }
-//                            })
-//                    } else {
-//                        Toast.makeText(
-//                            requireActivity() as MainActivity,
-//                            "Ошибка при сохранении данных продажи",
-//                            Toast.LENGTH_SHORT
-//                        ).show()
-//                    }
-//                }
-//            })
-//        }
-//    }
-
-
-
     private fun saveSaleData(
         addNom: AddNom,
         quantity: String,
@@ -164,13 +158,15 @@ class NomenclatureFragment : Fragment(), AddRcAdapter.SellButtonClickListener {
             val uid = firebaseUser.uid
             val dbManager = DbManager()
 
-            dbManager.findSaleByDate(uid, addNom.id!!, sellDate, object : DbManager.FindSaleListener {
+            dbManager.findSaleByDate(uid, addNom.id!!, sellDate, paymentMethod, object : DbManager.FindSaleListener {
+                val upPrice = (sellPrice.toInt() * quantity.toInt()).toString()
                 override fun onFinish(saleKey: String?, sale: AddSales?) {
                     if (sale == null || saleKey == null) {
+                        val newSaleKey = dbManager.dbSales.push().key
                         val newSale = AddSales(
                             category = addNom.category,
                             description = addNom.description,
-                            price = sellPrice,
+                            price = upPrice,
                             date = sellDate,
                             mainImage = addNom.mainImage,
                             image2 = addNom.image2,
@@ -178,7 +174,8 @@ class NomenclatureFragment : Fragment(), AddRcAdapter.SellButtonClickListener {
                             soldQuantity = quantity,
                             paymentMethod = paymentMethod,
                             id = addNom.id,
-                            uid = uid
+                            uid = uid,
+                            idItem = newSaleKey
                         )
 
                         dbManager.saveSale(newSale, object : DbManager.FinishWorkListener {
@@ -200,11 +197,12 @@ class NomenclatureFragment : Fragment(), AddRcAdapter.SellButtonClickListener {
                         })
                     } else {
                         val newQuantity = (sale.soldQuantity!!.toInt() + quantity.toInt()).toString()
-                        val newPrice = (sale.price!!.toInt() + sellPrice.toInt()).toString()
+                        val newPrice = (sale.price!!.toInt() + (sellPrice.toInt() * quantity.toInt())).toString()
 
                         dbManager.updateSaleQuantityAndPrice(saleKey, newQuantity, newPrice, object : DbManager.FinishWorkListener {
                             override fun onFinish(isDone: Boolean) {
                                 if (isDone) {
+
                                     Toast.makeText(
                                         requireActivity() as MainActivity,
                                         "Данные продажи успешно обновлены",
@@ -248,11 +246,6 @@ class NomenclatureFragment : Fragment(), AddRcAdapter.SellButtonClickListener {
         }
     }
 
-
-
-
-
-
     private fun showSellDialog(addNom: AddNom) {
         val builder = AlertDialog.Builder(requireActivity() as MainActivity)
         val inflater = layoutInflater
@@ -263,8 +256,6 @@ class NomenclatureFragment : Fragment(), AddRcAdapter.SellButtonClickListener {
         val tvSellDate = dialogView.findViewById<AutoCompleteTextView>(R.id.tvSellDate)
         val rgPaymentMethod = dialogView.findViewById<RadioGroup>(R.id.rgPaymentMethod)
         val btnSubmitSell = dialogView.findViewById<Button>(R.id.btnSubmitSell)
-        // Получение оставшегося количества товара
-//        var remainingQuantity = addNom.quantity!!.toInt()
 //Значения по умолчанию в диалоге
         etSellPrice.setText(addNom.price)
         etQuantity.setText("1")
@@ -328,7 +319,7 @@ class NomenclatureFragment : Fragment(), AddRcAdapter.SellButtonClickListener {
             val radioButton = dialogView.findViewById<RadioButton>(selectedPaymentMethodId)
             val paymentMethod = radioButton.text.toString()
 
-            if (quantityInput.isNotBlank() && sellPrice.isNotBlank() && selectedPaymentMethodId != -1) {
+            if (quantityInput.isNotBlank() && sellPrice.isNotBlank() && selectedPaymentMethodId != 0) {
                 // Проверка, чтобы введенное количество не превышало текущее количество товара
                 val currentQuantity = addNom.quantity!!.toInt()
                 val inputQuantity = quantityInput.toInt()
