@@ -13,19 +13,6 @@ open class BaseFrag: Fragment(), onClose {
         super.onViewCreated(view, savedInstanceState)
         initAds()
     }
-
-    override fun onResume() {
-        super.onResume()
-    }
-
-    override fun onPause() {
-        super.onPause()
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-    }
-
     private fun initAds(){
     }
 

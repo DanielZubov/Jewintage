@@ -1,11 +1,11 @@
 package com.stato.jewintage.adapters
 
 import android.graphics.Bitmap
-import android.net.Uri
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
+import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.stato.jewintage.R
 
@@ -37,10 +37,15 @@ class ImageAdapter : RecyclerView.Adapter<ImageAdapter.ImageHolder>() {
 
     }
 
-    fun update(newList : ArrayList<Bitmap>){
+    fun update(newList: ArrayList<Bitmap>) {
+        val diffCallback = DiffUtilHelperBitmap(mainArray, newList)
+        val diffResult = DiffUtil.calculateDiff(diffCallback)
+
         mainArray.clear()
         mainArray.addAll(newList)
-        notifyDataSetChanged()
+
+        diffResult.dispatchUpdatesTo(this)
     }
+
 
 }

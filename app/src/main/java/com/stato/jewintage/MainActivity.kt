@@ -12,6 +12,8 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.GravityCompat
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentManager
 import androidx.navigation.NavController
 import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
@@ -26,15 +28,21 @@ import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 import com.stato.jewintage.adapters.AddRcAdapter
+import com.stato.jewintage.adapters.CostAdapter
 import com.stato.jewintage.databinding.ActivityMainBinding
 import com.stato.jewintage.dialogHelper.DialogConst
 import com.stato.jewintage.dialogHelper.DialogHelper
-import com.stato.jewintage.fragments.SalesAdapter
+import com.stato.jewintage.adapters.SalesAdapter
+import com.stato.jewintage.fragments.CostFragment
+import com.stato.jewintage.fragments.NomenclatureFragment
+import com.stato.jewintage.fragments.SalesFragment
+import com.stato.jewintage.fragments.SalesGroupFragment
+import com.stato.jewintage.model.AddCost
 import com.stato.jewintage.model.AddNom
 import com.stato.jewintage.model.AddSales
 import com.stato.jewintage.viewmodel.FirebaseViewModel
 
-class MainActivity : AppCompatActivity(),SalesAdapter.DeleteItemListener, NavigationView.OnNavigationItemSelectedListener, AddRcAdapter.DeleteItemListener  {
+class MainActivity : AppCompatActivity(), SalesGroupFragment.OnSalesGroupDateSelectedListener, SalesAdapter.DeleteItemListener, NavigationView.OnNavigationItemSelectedListener, AddRcAdapter.DeleteItemListener, CostAdapter.DeleteItemListener  {
     private lateinit var binding : ActivityMainBinding
     private lateinit var tvAccount : TextView
     private lateinit var userPhotoImageView : ImageView
@@ -44,8 +52,6 @@ class MainActivity : AppCompatActivity(),SalesAdapter.DeleteItemListener, Naviga
     private val dialogHelper = DialogHelper(this)
     lateinit var googleSignInLauncher: ActivityResultLauncher<Intent>
     private val firebaseViewModel : FirebaseViewModel by viewModels()
-//    private lateinit var database: FirebaseDatabase
-//    private lateinit var salesRef: DatabaseReference
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -56,6 +62,7 @@ class MainActivity : AppCompatActivity(),SalesAdapter.DeleteItemListener, Naviga
         init()
         firebaseViewModel.loadAllAds()
         firebaseViewModel.loadAllSales()
+        firebaseViewModel.loadAllCost()
 
         navController = findNavController(R.id.placeScreen)
         conf = AppBarConfiguration(
@@ -63,13 +70,63 @@ class MainActivity : AppCompatActivity(),SalesAdapter.DeleteItemListener, Naviga
                 R.id.costFragment,
                 R.id.salesFragment,
                 R.id.nomenclatureFragment,
+                R.id.salesGroupFragment,
             ), binding.drawerLayout
         )
         setupActionBarWithNavController(navController, conf)
         binding.btmMenu.setupWithNavController(navController)
+        if (savedInstanceState == null) {
+            replaceFragment(SalesGroupFragment(), false)
+        }
 
-
+        binding.btmMenu.setOnItemSelectedListener { item ->
+            when (item.itemId) {
+                R.id.salesGroupFragment -> {
+                    replaceFragment(SalesGroupFragment(), false)
+                    true
+                }
+                R.id.nomenclatureFragment -> {
+                    replaceFragment(NomenclatureFragment(), false)
+                    true
+                }
+                R.id.costFragment -> {
+                    replaceFragment(CostFragment(), false)
+                    true
+                }
+                else -> false
+            }
+        }
     }
+    private fun replaceFragment(fragment: Fragment, addToBackStack: Boolean) {
+        val transaction = supportFragmentManager.beginTransaction()
+        transaction.replace(R.id.placeScreen, fragment)
+        if (addToBackStack) transaction.addToBackStack(null)
+        transaction.commit()
+    }
+
+    override fun onSalesGroupDateSelected(date: String) {
+        val salesFragment = SalesFragment().apply {
+            arguments = Bundle().apply {
+                putString("selected_date", date)
+            }
+        }
+        supportFragmentManager.beginTransaction()
+            .replace(R.id.placeScreen, salesFragment)
+            .addToBackStack(null)
+            .commit()
+    }
+    @Deprecated("Deprecated in Java")
+    override fun onBackPressed() {
+        val currentFragment = supportFragmentManager.findFragmentById(R.id.placeScreen)
+        if (currentFragment is SalesFragment) {
+            replaceFragment(SalesGroupFragment(), false)
+        } else {
+            super.onBackPressed()
+        }
+    }
+
+
+
 
     private fun onActivityResult() {
         googleSignInLauncher = registerForActivityResult(
@@ -101,6 +158,7 @@ class MainActivity : AppCompatActivity(),SalesAdapter.DeleteItemListener, Naviga
         binding.navView.setNavigationItemSelectedListener(this)
         tvAccount = binding.navView.getHeaderView(0).findViewById(R.id.titleHeader)
         userPhotoImageView = binding.navView.getHeaderView(0).findViewById(R.id.profileImg)
+
     }
 
 
@@ -160,8 +218,11 @@ class MainActivity : AppCompatActivity(),SalesAdapter.DeleteItemListener, Naviga
     }
 
     override fun onDeleteSellItem(sale: AddSales) {
-        Log.d("onDeleteSellItem", "onDeleteSellItem called")
         firebaseViewModel.deleteSellItem(sale)
+    }
+
+    override fun onDeleteCostItem(cost: AddCost) {
+        firebaseViewModel.deleteCostItem(cost)
     }
 
 

@@ -18,5 +18,18 @@
         android:id="@+id/salesFragment"
         android:name="com.stato.jewintage.fragments.SalesFragment"
         android:label="@string/salesFragment"
-        tools:layout="@layout/fragment_sales" />
+        tools:layout="@layout/fragment_sales" >
+        <action
+            android:id="@+id/action_salesFragment_to_salesGroupFragment2"
+            app:destination="@id/salesGroupFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/salesGroupFragment"
+        android:name="com.stato.jewintage.fragments.SalesGroupFragment"
+        android:label="@string/salesFragment"
+        tools:layout="@layout/fragment_sales_group" >
+        <action
+            android:id="@+id/action_salesGroupFragment_to_salesFragment"
+            app:destination="@id/salesFragment" />
+    </fragment>
 </navigation>

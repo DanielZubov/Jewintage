@@ -34,7 +34,7 @@
                 android:layout_marginEnd="8dp"
                 android:fontFamily="@font/comfortaa_bold"
                 android:gravity="end"
-                android:text="TextView"
+                android:text=""
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
 
@@ -43,7 +43,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:fontFamily="@font/comfortaa_bold"
-                android:text="TextView"
+                android:text=""
                 app:layout_constraintStart_toStartOf="@+id/tvSaleItemCat"
                 app:layout_constraintTop_toBottomOf="@+id/tvSaleItemDescription" />
 
@@ -54,7 +54,7 @@
                 android:ellipsize="end"
                 android:fontFamily="@font/comfortaa_bold"
                 android:maxLines="1"
-                android:text="TextView"
+                android:text=""
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintHorizontal_bias="0.0"
                 app:layout_constraintStart_toStartOf="@+id/tvSaleItemCat"
@@ -64,11 +64,11 @@
                 android:id="@+id/tvSaleItemCat"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="5dp"
+                android:layout_marginStart="8dp"
                 android:layout_marginTop="5dp"
                 android:fontFamily="@font/comfortaa_bold"
-                android:text="TextView"
-                android:textAllCaps="true"
+                android:text=""
+                android:textAllCaps="false"
                 android:textStyle="bold"
                 app:layout_constraintStart_toEndOf="@+id/ivSaleItem"
                 app:layout_constraintTop_toTopOf="parent" />
@@ -85,8 +85,8 @@
 
             <ImageButton
                 android:id="@+id/ibDeleteSlItem"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
                 android:background="@android:color/transparent"
                 android:contentDescription="@string/delete"
                 app:layout_constraintBottom_toBottomOf="parent"
@@ -95,10 +95,10 @@
 
             <ImageButton
                 android:id="@+id/ibEditSlItem"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
                 android:background="@android:color/transparent"
-                android:contentDescription="@string/delete"
+                android:contentDescription="@string/edit"
                 app:layout_constraintBottom_toBottomOf="@+id/ibDeleteSlItem"
                 app:layout_constraintEnd_toStartOf="@+id/ibDeleteSlItem"
                 app:layout_constraintTop_toTopOf="@+id/ibDeleteSlItem"
@@ -108,7 +108,7 @@
                 android:id="@+id/tvPaymentMethod"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="TextView"
+                android:text=""
                 app:layout_constraintEnd_toEndOf="@+id/tvSaleItemSum"
                 app:layout_constraintTop_toBottomOf="@+id/tvSaleItemSum" />
 

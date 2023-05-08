@@ -15,11 +15,27 @@
       },
       "oauth_client": [
         {
-          "client_id": "71057707312-tfdnltp10oq0unscnn2mh0vp42k0b1qk.apps.googleusercontent.com",
+          "client_id": "71057707312-beucklrl7g3t1p6omvq1ut1b8mcqd2bs.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
             "package_name": "com.stato.jewintage",
-            "certificate_hash": "2e879fc868ce21ed367e40c898c1f2cb0e20d694"
+            "certificate_hash": "b504eb288e0fb56800c5cd68fa720f643ebaf8b2"
+          }
+        },
+        {
+          "client_id": "71057707312-boss8423ra0d2d00cb7cno0a2b50o5uk.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.stato.jewintage",
+            "certificate_hash": "28f72d374390f85c712ce5afd604d8652a2aa903"
+          }
+        },
+        {
+          "client_id": "71057707312-ipuanc3q2bob25vnvg1659bac82gmg0f.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.stato.jewintage",
+            "certificate_hash": "dbd785c9bf867a753395c2a60a8803ed6a468b56"
           }
         },
         {

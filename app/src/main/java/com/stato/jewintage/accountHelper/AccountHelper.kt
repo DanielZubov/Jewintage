@@ -13,7 +13,6 @@ import com.google.firebase.auth.GoogleAuthProvider
 import com.stato.jewintage.MainActivity
 import com.stato.jewintage.R
 import com.stato.jewintage.constance.FirebaseConstance
-import com.stato.jewintage.dialogHelper.GoogleAccConst
 
 class AccountHelper(act: MainActivity) {
     private val activity = act
@@ -109,6 +108,8 @@ class AccountHelper(act: MainActivity) {
             if (task.isSuccessful){
                 activity.uiUpdate(task.result.user)
                 Toast.makeText(activity, "Вход выполнен успешно", Toast.LENGTH_SHORT).show()
+            } else {
+                Toast.makeText(activity, "Ошибка авторизации", Toast.LENGTH_SHORT).show()
             }
         }
     }

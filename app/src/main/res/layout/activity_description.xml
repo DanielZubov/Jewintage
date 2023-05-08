@@ -43,7 +43,7 @@
                         android:layout_height="wrap_content"
                         android:fontFamily="@font/comfortaa_bold"
                         android:padding="5dp"
-                        android:text="TextView"
+                        android:text=""
                         android:textAllCaps="true"
                         android:textSize="20sp"
                         android:textStyle="bold" />
@@ -54,7 +54,7 @@
                         android:layout_height="wrap_content"
                         android:fontFamily="@font/comfortaa_bold"
                         android:padding="5dp"
-                        android:text="TextView" />
+                        android:text="" />
 
                     <TextView
                         android:id="@+id/tvDesDesc"
@@ -62,7 +62,7 @@
                         android:layout_height="wrap_content"
                         android:fontFamily="@font/comfortaa_bold"
                         android:padding="5dp"
-                        android:text="TextView"
+                        android:text=""
                         android:textStyle="italic" />
 
                 </LinearLayout>
@@ -131,7 +131,7 @@
                             android:layout_margin="10dp"
                             android:layout_weight="1"
                             android:fontFamily="@font/comfortaa_bold"
-                            android:text="TextView" />
+                            android:text="" />
 
                         <TextView
                             android:id="@+id/tvDesQuantity"
@@ -140,7 +140,7 @@
                             android:layout_margin="10dp"
                             android:layout_weight="1"
                             android:fontFamily="@font/comfortaa_bold"
-                            android:text="TextView" />
+                            android:text="" />
 
                         <TextView
                             android:id="@+id/tvDesDate"
@@ -149,7 +149,7 @@
                             android:layout_margin="10dp"
                             android:layout_weight="1"
                             android:fontFamily="@font/comfortaa_bold"
-                            android:text="TextView" />
+                            android:text="" />
                     </LinearLayout>
 
                 </LinearLayout>
@@ -173,6 +173,7 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="8dp"
             android:clickable="true"
+            android:contentDescription="@string/sell"
             app:layout_constraintBottom_toTopOf="@+id/btnDesDel"
             app:layout_constraintEnd_toEndOf="@+id/btnDesEdit"
             app:srcCompat="@drawable/ic_saleitem" />
@@ -184,7 +185,7 @@
             android:layout_marginEnd="16dp"
             android:layout_marginBottom="16dp"
             android:clickable="true"
-            android:contentDescription="@string/Hello"
+            android:contentDescription="@string/edit"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:srcCompat="@drawable/ic_description" />
@@ -195,7 +196,7 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="8dp"
             android:clickable="true"
-            android:contentDescription="@string/Hello"
+            android:contentDescription="@string/delete"
             app:layout_constraintBottom_toTopOf="@+id/btnDesEdit"
             app:layout_constraintEnd_toEndOf="@+id/btnDesEdit"
             app:srcCompat="@drawable/ic_del_item" />

@@ -4,19 +4,15 @@ import android.app.Activity
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
-import android.util.Log
 import android.widget.ImageView
-import androidx.core.net.toUri
-import androidx.exifinterface.media.ExifInterface
 import com.squareup.picasso.Picasso
 import com.stato.jewintage.adapters.ImageAdapter
+import com.stato.jewintage.model.AddCost
 import com.stato.jewintage.model.AddNom
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.io.File
-import java.io.InputStream
 
 object ImageManager {
     private const val MAX_IMAGE_SIZE = 1000
@@ -91,9 +87,6 @@ object ImageManager {
                         .get()
                 )
 
-            }.onFailure { exception ->
-                // Здесь вы можете залогировать исключение и получить информацию об ошибке
-                Log.e("ImageManager", "Error loading image: ${uris[i]}", exception)
             }
         }
         return@withContext bitmapList
@@ -103,6 +96,19 @@ object ImageManager {
         val listUris = listOf(ad.mainImage, ad.image2, ad.image3,)
         CoroutineScope(Dispatchers.Main).launch {
             val bitMapList = getBitmapForUris(listUris)
+            adapter.update(bitMapList as ArrayList<Bitmap>)
+        }
+    }
+    fun fillImageCostArray(cost: AddCost, adapter: ImageAdapter){
+        val listUris = listOf(cost.mainImage, cost.image2, cost.image3,)
+        CoroutineScope(Dispatchers.Main).launch {
+            val bitMapList = getBitmapForUris(listUris)
+            adapter.update(bitMapList as ArrayList<Bitmap>)
+        }
+    }
+    fun fillImageSellArray(imageUrls: List<String?>, adapter: ImageAdapter) {
+        CoroutineScope(Dispatchers.Main).launch {
+            val bitMapList = getBitmapForUris(imageUrls)
             adapter.update(bitMapList as ArrayList<Bitmap>)
         }
     }

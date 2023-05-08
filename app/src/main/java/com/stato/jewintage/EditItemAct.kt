@@ -26,7 +26,6 @@ import java.util.Locale
 class EditItemAct : AppCompatActivity(), FragmentCloseInterface {
     var chooseImageFrag: ImageListFragment? = null
     lateinit var binding: ActivityEditItemBinding
-    private var isImagePermissionGranted = false
     lateinit var imageAdapter: ImageAdapter
     private val dbManager = DbManager()
     var editImagePos = 0
@@ -46,6 +45,7 @@ class EditItemAct : AppCompatActivity(), FragmentCloseInterface {
     private fun checkEditState(){
         isEditState = isEditState()
         if (isEditState){
+            @Suppress("DEPRECATION")
             addNom = intent.getSerializableExtra(MainActivity.ADS_DATA) as AddNom
             if (addNom != null)fillViews(addNom!!)
         }
@@ -74,16 +74,6 @@ class EditItemAct : AppCompatActivity(), FragmentCloseInterface {
         val category = resources.getStringArray(R.array.category)
         val arrayAdapter = ArrayAdapter(this, R.layout.dropdown_category, category)
         binding.edTICategory.setAdapter(arrayAdapter)
-        // Получение текущей даты
-        val currentDate = Calendar.getInstance().time
-
-// Форматирование даты в строку
-        val dateFormat = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault())
-        val currentDateStr = dateFormat.format(currentDate)
-
-// Установка даты в поле ввода
-        binding.edTIDate.setText(currentDateStr)
-
         // Слушатель клика на поле ввода даты
         binding.edTIDate.setOnClickListener {
             // Получение текущей даты
@@ -100,8 +90,8 @@ class EditItemAct : AppCompatActivity(), FragmentCloseInterface {
                     val selectedDate = Calendar.getInstance()
                     selectedDate.set(selectedYear, selectedMonth, selectedDay)
                     // Форматирование даты в строку
-                    val dateFormat = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault())
-                    val selectedDateStr = dateFormat.format(selectedDate.time)
+                    val formatDate = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault())
+                    val selectedDateStr = formatDate.format(selectedDate.time)
 
                     // Установка выбранной даты в поле ввода
                     binding.edTIDate.setText(selectedDateStr)
@@ -121,11 +111,11 @@ class EditItemAct : AppCompatActivity(), FragmentCloseInterface {
             datePickerDialog.show()
         }
         //Прослушивание ошибок в поле ввода "Описание"
-        binding.edTIDescription.doOnTextChanged { text, start, before, count ->
+        binding.edTIDescription.doOnTextChanged { text, _, _, _ ->
             if (text!!.length > 50) {
-                binding.layoutTINumCategory.error = "Превышено максимальное количество символов"
+                binding.layoutTIDescription.error = "Превышено максимальное количество символов"
             } else if (text.length < 50) {
-                binding.layoutTINumCategory.error = null
+                binding.layoutTIDescription.error = null
             }
         }
 
@@ -297,7 +287,7 @@ class EditItemAct : AppCompatActivity(), FragmentCloseInterface {
             .child("image_${System.currentTimeMillis()}")
         val upTask = imStorageReference.putBytes(byteArray)
         upTask.continueWithTask{
-            task->imStorageReference.downloadUrl
+            imStorageReference.downloadUrl
         }.addOnCompleteListener(listener)
     }
     private fun updateImage(byteArray: ByteArray, url: String, listener: OnCompleteListener<Uri>){
@@ -305,7 +295,7 @@ class EditItemAct : AppCompatActivity(), FragmentCloseInterface {
             .getReferenceFromUrl(url)
         val upTask = imStorageReference.putBytes(byteArray)
         upTask.continueWithTask{
-            task->imStorageReference.downloadUrl
+            imStorageReference.downloadUrl
         }.addOnCompleteListener(listener)
     }
 

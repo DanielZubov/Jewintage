@@ -42,7 +42,8 @@
         android:src="@drawable/ic_add"
         android:visibility="invisible"
         app:layout_constraintBottom_toTopOf="@+id/btnImage"
-        app:layout_constraintEnd_toEndOf="@+id/btnImage" />
+        app:layout_constraintEnd_toEndOf="@+id/btnImage"
+        android:contentDescription="@string/add" />
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/btnDel"
@@ -54,7 +55,8 @@
         android:src="@drawable/ic_del"
         android:visibility="invisible"
         app:layout_constraintBottom_toBottomOf="@+id/btnImage"
-        app:layout_constraintEnd_toStartOf="@+id/btnImage" />
+        app:layout_constraintEnd_toStartOf="@+id/btnImage"
+        android:contentDescription="@string/delete" />
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/btnSave"
@@ -65,6 +67,7 @@
         android:src="@drawable/ic_save"
         android:visibility="invisible"
         app:layout_constraintBottom_toTopOf="@+id/btnDel"
-        app:layout_constraintEnd_toStartOf="@+id/btnAdd" />
+        app:layout_constraintEnd_toStartOf="@+id/btnAdd"
+        android:contentDescription="@string/apply" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

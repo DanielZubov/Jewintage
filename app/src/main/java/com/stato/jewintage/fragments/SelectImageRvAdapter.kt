@@ -1,11 +1,13 @@
 package com.stato.jewintage.fragments
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Bitmap
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.stato.jewintage.EditItemAct
+import com.stato.jewintage.EditItemCost
 import com.stato.jewintage.R
 import com.stato.jewintage.databinding.SelectImageFragmentItemBinding
 import com.stato.jewintage.util.AdapterCallback
@@ -32,6 +34,7 @@ class SelectImageRvAdapter(val adapterCallback: AdapterCallback) : RecyclerView.
         notifyItemMoved(startPos, targetPos)
     }
 
+    @SuppressLint("NotifyDataSetChanged")
     override fun onClear() {
         notifyDataSetChanged()
     }
@@ -62,8 +65,27 @@ class SelectImageRvAdapter(val adapterCallback: AdapterCallback) : RecyclerView.
             ImageManager.chooseScaleType(binding.imageContent, bitMap)
             binding.imageContent.setImageBitmap(bitMap)
         }
+        fun setCostData(bitMap : Bitmap) {
+            binding.imageLayout.setOnClickListener {
+                ImagePicker.getSingleImagesCost(context as EditItemCost)
+                context.editImagePos = adapterPosition
+            }
+
+            binding.btnDeItem.setOnClickListener {
+                adapter.mainArray.removeAt(adapterPosition)
+                adapter.notifyItemRemoved(adapterPosition)
+                for (n in 0 until adapter.mainArray.size)
+                    adapter.notifyItemChanged(n)
+                adapter.adapterCallback.onItemDel()
+            }
+
+            binding.tvTitle.text = context.resources.getStringArray(R.array.tittle_image)[adapterPosition]
+            ImageManager.chooseScaleType(binding.imageContent, bitMap)
+            binding.imageContent.setImageBitmap(bitMap)
+        }
     }
 
+    @SuppressLint("NotifyDataSetChanged")
     fun updateAdapter(newList : List<Bitmap>, needClear : Boolean){
         if (needClear)mainArray.clear()
         mainArray.addAll(newList)

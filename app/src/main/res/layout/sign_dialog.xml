@@ -32,7 +32,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="@string/reg_email"
-            android:inputType="textEmailAddress" />
+            android:inputType="textEmailAddress"
+            tools:ignore="TextContrastCheck,VisualLintTextFieldSize" />
     </com.google.android.material.textfield.TextInputLayout>
 
     <com.google.android.material.textfield.TextInputLayout
@@ -49,7 +50,8 @@
             android:layout_height="wrap_content"
             android:hint="@string/reg_password"
             android:inputType="textPassword"
-            android:textColorHint="#546E7A" />
+            android:textColorHint="#546E7A"
+            tools:ignore="TextContrastCheck,VisualLintTextFieldSize" />
     </com.google.android.material.textfield.TextInputLayout>
 
     <Button
@@ -63,7 +65,8 @@
         app:layout_constraintEnd_toEndOf="@+id/edPassword"
         app:layout_constraintStart_toStartOf="@+id/edPassword"
         app:layout_constraintTop_toBottomOf="@+id/edPassword"
-        app:layout_constraintVertical_bias="0.0" />
+        app:layout_constraintVertical_bias="0.0"
+        tools:ignore="VisualLintButtonSize" />
 
     <Button
         android:id="@+id/btnForgotPsw"
@@ -82,7 +85,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
         android:gravity="center"
-        android:text="или"
+        android:text="@string/or"
         app:layout_constraintEnd_toEndOf="@+id/btnReg"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="@+id/btnReg"

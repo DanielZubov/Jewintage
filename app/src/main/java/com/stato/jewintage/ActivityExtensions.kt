@@ -26,10 +26,13 @@ fun AppCompatActivity.showSellDialog(auth: FirebaseAuth, addNom: AddNom) {
     val etSellPrice = dialogView.findViewById<TextInputEditText>(R.id.etSellPrice)
     val tvSellDate = dialogView.findViewById<AutoCompleteTextView>(R.id.tvSellDate)
     val rgPaymentMethod = dialogView.findViewById<RadioGroup>(R.id.rgPaymentMethod)
+    val rbCash = dialogView.findViewById<RadioButton>(R.id.rbCash)
     val btnSubmitSell = dialogView.findViewById<Button>(R.id.btnSubmitSell)
     // Получение оставшегося количества товара
 //        var remainingQuantity = addNom.quantity!!.toInt()
 //Значения по умолчанию в диалоге
+
+    rbCash.isChecked = true
     etSellPrice.setText(addNom.price)
     etQuantity.setText("1")
 
@@ -63,8 +66,8 @@ fun AppCompatActivity.showSellDialog(auth: FirebaseAuth, addNom: AddNom) {
                 val selectedDate = Calendar.getInstance()
                 selectedDate.set(selectedYear, selectedMonth, selectedDay)
                 // Форматирование даты в строку
-                val dateFormat = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault())
-                val selectedDateStr = dateFormat.format(selectedDate.time)
+                val formatDate = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault())
+                val selectedDateStr = formatDate.format(selectedDate.time)
 
                 // Установка выбранной даты в поле ввода
                 tvSellDate.setText(selectedDateStr)
@@ -137,11 +140,13 @@ fun AppCompatActivity.saveSaleData(
             paymentMethod,
             object : DbManager.FindSaleListener {
                 override fun onFinish(saleKey: String?, sale: AddSales?) {
+                    val upPrice = (sellPrice.toInt() * quantity.toInt()).toString()
                     if (sale == null || saleKey == null) {
+                        val newSaleKey = dbManager.dbSales.push().key
                         val newSale = AddSales(
                             category = addNom.category,
                             description = addNom.description,
-                            price = sellPrice,
+                            price = upPrice,
                             date = sellDate,
                             mainImage = addNom.mainImage,
                             image2 = addNom.image2,
@@ -149,7 +154,8 @@ fun AppCompatActivity.saveSaleData(
                             soldQuantity = quantity,
                             paymentMethod = paymentMethod,
                             id = addNom.id,
-                            uid = uid
+                            uid = uid,
+                            idItem = newSaleKey
                         )
 
                         dbManager.saveSale(newSale, object : DbManager.FinishWorkListener {
@@ -172,9 +178,10 @@ fun AppCompatActivity.saveSaleData(
                     } else {
                         val newQuantity =
                             (sale.soldQuantity!!.toInt() + quantity.toInt()).toString()
-                        val newPrice = (sale.price!!.toInt() + sellPrice.toInt()).toString()
+                        val newPrice = (sale.price!!.toInt() + (sellPrice.toInt() * quantity.toInt())).toString()
 
                         dbManager.updateSaleQuantityAndPrice(
+                            addNom.uid!!,
                             saleKey,
                             newQuantity,
                             newPrice,

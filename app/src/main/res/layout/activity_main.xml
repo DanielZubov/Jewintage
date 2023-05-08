@@ -39,7 +39,8 @@
         android:layout_gravity="start"
         android:fitsSystemWindows="true"
         app:headerLayout="@layout/header"
-        app:menu="@menu/drawer_menu">
+        app:menu="@menu/drawer_menu"
+        tools:ignore="VisualLintBounds">
 
     </com.google.android.material.navigation.NavigationView>
 

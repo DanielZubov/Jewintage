@@ -1,0 +1,207 @@
+<!-- drawer_filter_layout.xml -->
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/md_theme_light_onError"
+    android:clickable="true"
+    android:focusable="auto"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <!-- Категория -->
+   <androidx.constraintlayout.widget.ConstraintLayout
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content">
+    <TextView
+        android:id="@+id/categoriesTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="@string/category"
+        android:textAppearance="?attr/textAppearanceHeadline6"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/categories_recycler_view"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/categoriesTitle" />
+
+    <androidx.constraintlayout.widget.Group
+        android:id="@+id/categories_group"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:constraint_referenced_ids="categories_recycler_view" />
+
+    <!-- Цена -->
+    <TextView
+        android:id="@+id/priceTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="@string/price"
+        android:textAppearance="?attr/textAppearanceHeadline6"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/categories_recycler_view" />
+
+       <LinearLayout
+           android:id="@+id/priceLayout"
+           android:layout_width="match_parent"
+           android:layout_height="wrap_content"
+           android:layout_marginTop="8dp"
+           android:orientation="horizontal"
+           app:layout_constraintEnd_toEndOf="parent"
+           app:layout_constraintStart_toStartOf="parent"
+           app:layout_constraintTop_toBottomOf="@+id/priceTitle"
+           android:baselineAligned="false">
+
+           <com.google.android.material.textfield.TextInputLayout
+               android:layout_width="0dp"
+               android:layout_height="match_parent"
+               android:layout_weight="1"
+               android:padding="5dp">
+
+               <com.google.android.material.textfield.TextInputEditText
+                   android:id="@+id/minPriceEditText"
+                   style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                   android:layout_width="match_parent"
+                   android:layout_height="wrap_content"
+                   android:hint="@string/min"
+                   android:inputType="numberDecimal"
+                   android:maxLines="1"
+                   tools:ignore="VisualLintTextFieldSize,TextContrastCheck" />
+           </com.google.android.material.textfield.TextInputLayout>
+
+
+           <com.google.android.material.textfield.TextInputLayout
+               android:layout_width="0dp"
+               android:layout_height="match_parent"
+               android:layout_weight="1"
+               android:padding="5dp">
+
+               <com.google.android.material.textfield.TextInputEditText
+                   android:id="@+id/maxPriceEditText"
+                   style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                   android:layout_width="match_parent"
+                   android:layout_height="wrap_content"
+                   android:hint="@string/max"
+                   android:inputType="numberDecimal"
+                   android:maxLines="1"
+                   tools:ignore="VisualLintTextFieldSize,TextContrastCheck" />
+           </com.google.android.material.textfield.TextInputLayout>
+       </LinearLayout>
+
+    <androidx.constraintlayout.widget.Group
+        android:id="@+id/price_group"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:constraint_referenced_ids="priceLayout" />
+
+    <!-- Дата -->
+
+
+    <TextView
+        android:id="@+id/dateTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="@string/date"
+        android:textAppearance="?attr/textAppearanceHeadline6"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/priceLayout" />
+
+    <LinearLayout
+        android:id="@+id/dateLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:orientation="horizontal"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/dateTitle"
+        android:baselineAligned="false">
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:padding="5dp">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/dateFromEditText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:clickable="true"
+                android:focusable="false"
+                android:hint="@string/minDate"
+                android:maxLines="1"
+                android:textSize="14sp"
+                tools:ignore="VisualLintTextFieldSize,TextContrastCheck" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:padding="5dp">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/dateToEditText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:clickable="true"
+                android:focusable="false"
+                android:hint="@string/maxDate"
+                android:maxLines="1"
+                android:textSize="14sp"
+                tools:ignore="VisualLintTextFieldSize,TextContrastCheck" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+
+    </LinearLayout>
+
+    <androidx.constraintlayout.widget.Group
+        android:id="@+id/date_group"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:constraint_referenced_ids="dateLayout" />
+
+    <!-- Кнопка применить -->
+
+       <LinearLayout
+           android:layout_width="0dp"
+           android:layout_height="wrap_content"
+           android:layout_marginTop="32dp"
+           android:gravity="center"
+           android:orientation="horizontal"
+           app:layout_constraintEnd_toEndOf="parent"
+           app:layout_constraintStart_toStartOf="parent"
+           app:layout_constraintTop_toBottomOf="@+id/dateLayout">
+
+           <Button
+               android:id="@+id/applyFiltersButton"
+               style="?android:attr/buttonBarButtonStyle"
+               android:layout_width="wrap_content"
+               android:layout_height="wrap_content"
+               android:layout_gravity="center_horizontal"
+               android:layout_marginTop="16dp"
+               android:layout_marginEnd="16dp"
+               android:text="@string/apply" />
+
+           <Button
+               android:id="@+id/resetButton"
+               style="?android:attr/buttonBarButtonStyle"
+               android:layout_width="wrap_content"
+               android:layout_height="wrap_content"
+               android:layout_gravity="center_horizontal"
+               android:layout_marginStart="16dp"
+               android:text="@string/reset" />
+       </LinearLayout>
+   </androidx.constraintlayout.widget.ConstraintLayout>
+</ScrollView>

@@ -3,8 +3,8 @@ package com.stato.jewintage.util
 import android.graphics.Bitmap
 import android.net.Uri
 import android.view.View
-import androidx.fragment.app.Fragment
 import com.stato.jewintage.EditItemAct
+import com.stato.jewintage.EditItemCost
 import com.stato.jewintage.R
 import io.ak1.pix.helpers.PixEventCallback
 import io.ak1.pix.helpers.addPixToActivity
@@ -36,6 +36,16 @@ object ImagePicker {
             }
         }
     }
+    fun getMultiImagesCost(edAct: EditItemCost, imageCounter: Int) {
+        edAct.addPixToActivity(R.id.placeHolder, getOptions(imageCounter)) { result ->
+            when (result.status) {
+                PixEventCallback.Status.SUCCESS -> {
+                    getMultiSelectImagesCost(edAct, result.data)
+                }
+                else -> {}
+            }
+        }
+    }
 
     fun addImages(edAct: EditItemAct, imageCounter: Int) {
         edAct.addPixToActivity(R.id.placeHolder, getOptions(imageCounter)) { result ->
@@ -59,12 +69,32 @@ object ImagePicker {
             }
         }
     }
+    fun getSingleImagesCost(edAct: EditItemCost) {
+        edAct.addPixToActivity(R.id.placeHolder, getOptions(1)) { result ->
+            when (result.status) {
+                PixEventCallback.Status.SUCCESS -> {
+                    openChooseImageCostFrag(edAct)
+                    singleImageCost(edAct, result.data[0])
+                }
+                else -> {}
+            }
+        }
+    }
 
     private fun openChooseImageFrag(edAct: EditItemAct){
         edAct.supportFragmentManager.beginTransaction().replace(R.id.placeHolder, edAct.chooseImageFrag!!).commit()
     }
+    private fun openChooseImageCostFrag(edAct: EditItemCost){
+        edAct.supportFragmentManager.beginTransaction().replace(R.id.placeHolder, edAct.chooseImageFrag!!).commit()
+    }
 
     private fun closePixFrag(edAct: EditItemAct) {
+        val fList = edAct.supportFragmentManager.fragments
+        fList.forEach {
+            if (it.isVisible) edAct.supportFragmentManager.beginTransaction().remove(it).commit()
+        }
+    }
+    private fun closePixFragCost(edAct: EditItemCost) {
         val fList = edAct.supportFragmentManager.fragments
         fList.forEach {
             if (it.isVisible) edAct.supportFragmentManager.beginTransaction().remove(it).commit()
@@ -84,9 +114,26 @@ object ImagePicker {
             }
         }
     }
+    private fun getMultiSelectImagesCost(edAct: EditItemCost, uris: List<Uri>) {
+        if (uris.size > 1 && edAct.chooseImageFrag == null) {
+            edAct.openChooseItemFrag(uris as ArrayList<Uri>)
+        } else if (uris.size == 1 && edAct.chooseImageFrag == null) {
+            CoroutineScope(Dispatchers.Main).launch {
+                edAct.binding.progressBar.visibility = View.VISIBLE
+                val bitMapArray = ImageManager.imageResize(uris, edAct) as ArrayList<Bitmap>
+                edAct.binding.progressBar.visibility = View.GONE
+                edAct.imageAdapter.update(bitMapArray)
+                closePixFragCost(edAct)
+            }
+        }
+    }
 }
 
 private fun singleImage(edAct: EditItemAct, uri : Uri) {
+    edAct.chooseImageFrag?.setSingleImage(uri, edAct.editImagePos)
+
+}
+private fun singleImageCost(edAct: EditItemCost, uri : Uri) {
     edAct.chooseImageFrag?.setSingleImage(uri, edAct.editImagePos)
 
 }

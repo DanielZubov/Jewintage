@@ -41,7 +41,8 @@
                     android:id="@+id/edTICategory"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:inputType="none" />
+                    android:inputType="none"
+                    tools:ignore="LabelFor,TextContrastCheck,VisualLintTextFieldSize" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <com.google.android.material.textfield.TextInputLayout
@@ -68,7 +69,8 @@
                     android:id="@+id/edTIDescription"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:maxLength="51" />
+                    android:maxLength="51"
+                    tools:ignore="TextContrastCheck,VisualLintTextFieldSize" />
             </com.google.android.material.textfield.TextInputLayout>
 
 
@@ -105,6 +107,7 @@
                     android:layout_marginBottom="8dp"
                     android:background="@android:color/transparent"
                     android:contentDescription="@string/photo"
+                    android:minWidth="48dp"
                     android:minHeight="48dp"
                     android:onClick="onClickGetImages"
                     app:srcCompat="@drawable/ic_photo" />
@@ -161,12 +164,13 @@
                     android:id="@+id/edTIPrice"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:inputType="numberDecimal" />
+                    android:inputType="numberDecimal"
+                    tools:ignore="TextContrastCheck,VisualLintTextFieldSize" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/layoutTIDate"
-                style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:layout_marginStart="16dp"
@@ -177,12 +181,15 @@
                 app:layout_constraintTop_toBottomOf="@id/layoutTIPrice"
                 app:startIconDrawable="@drawable/ic_date">
 
-                <AutoCompleteTextView
+                <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/edTIDate"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
+                    android:hint="@string/date"
                     android:inputType="none"
-                    tools:ignore="SpeakableTextPresentCheck" />
+                    android:clickable="true"
+                    android:focusable="false"
+                    tools:ignore="TextContrastCheck,VisualLintTextFieldSize" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <com.google.android.material.textfield.TextInputLayout
@@ -207,7 +214,8 @@
                     android:id="@+id/edTIquantity"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:inputType="number" />
+                    android:inputType="number"
+                    tools:ignore="VisualLintTextFieldSize" />
             </com.google.android.material.textfield.TextInputLayout>
 
         </LinearLayout>

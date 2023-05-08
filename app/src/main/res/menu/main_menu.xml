@@ -8,7 +8,7 @@
         android:orderInCategory="2"
         />
     <item
-        android:id="@+id/salesFragment"
+        android:id="@+id/salesGroupFragment"
         android:title="@string/salesFragment"
         android:icon="@drawable/ic_sales"
         android:orderInCategory="1"
