@@ -81,7 +81,7 @@
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
-                tools:srcCompat="@drawable/image_item" />
+                tools:srcCompat="@drawable/no_image_available" />
 
             <ImageButton
                 android:id="@+id/ibDeleteSlItem"

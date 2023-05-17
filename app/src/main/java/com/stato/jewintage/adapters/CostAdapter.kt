@@ -98,11 +98,11 @@ class CostAdapter(
             "₾ $newPrice".also { tvSaleItemSum.text = it }
             "${cost.quantity} шт.".also { tvSaleItemQuant.text = it }
             val mainImage = cost.mainImage
-            if (!mainImage.isNullOrEmpty()) {
+            if (!mainImage.isNullOrEmpty() && mainImage != "empty") {
                 Picasso.get().load(mainImage).into(ivSaleItem)
             } else {
                 val context = binding.root.context
-                val defaultImage = ContextCompat.getDrawable(context, R.drawable.image_item)
+                val defaultImage = ContextCompat.getDrawable(context, R.drawable.no_image_available)
                 ivSaleItem.setImageDrawable(defaultImage)
             }
             mainOnClick(cost)
@@ -154,6 +154,9 @@ class CostAdapter(
 
     interface OnDescriptionClickListener {
         fun onDescriptionClick(cost: AddCost)
+    }
+    interface OnEditClickListener {
+        fun onEditClick(cost: AddCost)
     }
 
 }

@@ -7,14 +7,28 @@ import android.view.ViewGroup
 import android.widget.CheckBox
 import androidx.recyclerview.widget.RecyclerView
 import com.stato.jewintage.R
+import com.stato.jewintage.model.Category
+import com.stato.jewintage.viewmodel.FirebaseViewModel
 
-class CategoryFilterAdapter(private val categories: Array<String>, private val onCategoryChecked: (String, Boolean) -> Unit) :
-    RecyclerView.Adapter<CategoryFilterAdapter.CategoryViewHolder>() {
+class CategoryFilterAdapter(
+    private val firebaseViewModel: FirebaseViewModel,
+    private val onCategoryChecked: (Category, Boolean) -> Unit
+) : RecyclerView.Adapter<CategoryFilterAdapter.CategoryViewHolder>() {
 
-    val checkedCategories = mutableSetOf<String>()
+    private var categories = listOf<Category>()
+    val checkedCategories = mutableSetOf<Category>()
+
+    init {
+        firebaseViewModel.loadAllCategories()
+        firebaseViewModel.liveCategoryData.observeForever { newCategories ->
+            this.categories = newCategories
+            notifyDataSetChanged()
+        }
+    }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CategoryViewHolder {
-        val view = LayoutInflater.from(parent.context).inflate(R.layout.category_filter_item, parent, false)
+        val view = LayoutInflater.from(parent.context)
+            .inflate(R.layout.category_filter_item, parent, false)
         return CategoryViewHolder(view)
     }
 
@@ -29,8 +43,8 @@ class CategoryFilterAdapter(private val categories: Array<String>, private val o
     inner class CategoryViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val checkBox: CheckBox = itemView.findViewById(R.id.category_checkbox)
 
-        fun bind(category: String) {
-            checkBox.text = category
+        fun bind(category: Category) {
+            checkBox.text = category.name
             checkBox.isChecked = checkedCategories.contains(category)
 
             checkBox.setOnCheckedChangeListener { _, isChecked ->
@@ -43,6 +57,7 @@ class CategoryFilterAdapter(private val categories: Array<String>, private val o
             }
         }
     }
+
     @SuppressLint("NotifyDataSetChanged")
     fun resetCheckedCategories() {
         checkedCategories.clear()

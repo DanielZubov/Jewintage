@@ -24,7 +24,6 @@ class ItemMoveCallBack(val adapter : ItemMoveAdapter) : ItemTouchHelper.Callback
     }
 
     override fun onSwiped(viewHolder: ViewHolder, direction: Int) {
-        TODO("Not yet implemented")
     }
 
     override fun onSelectedChanged(viewHolder: ViewHolder?, actionState: Int) {

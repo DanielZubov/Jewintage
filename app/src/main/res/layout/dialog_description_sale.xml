@@ -26,7 +26,7 @@
                     android:padding="5dp">
 
                     <androidx.viewpager2.widget.ViewPager2
-                        android:id="@+id/vpDes"
+                        android:id="@+id/vpDesSale"
                         android:layout_width="match_parent"
                         android:layout_height="300dp" />
 

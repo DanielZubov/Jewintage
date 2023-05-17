@@ -19,8 +19,11 @@
         android:name="com.stato.jewintage.fragments.SalesFragment"
         android:label="@string/salesFragment"
         tools:layout="@layout/fragment_sales" >
+        <argument
+            android:name="selectedDate"
+            app:argType="string" />
         <action
-            android:id="@+id/action_salesFragment_to_salesGroupFragment2"
+            android:id="@+id/action_salesFragment_to_salesGroupFragment"
             app:destination="@id/salesGroupFragment" />
     </fragment>
     <fragment

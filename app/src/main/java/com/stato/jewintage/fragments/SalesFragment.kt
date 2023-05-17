@@ -1,7 +1,9 @@
 package com.stato.jewintage.fragments
 
+import android.annotation.SuppressLint
 import android.app.DatePickerDialog
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuInflater
@@ -19,26 +21,31 @@ import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import androidx.viewpager2.widget.ViewPager2
 import com.google.android.material.textfield.TextInputEditText
+import com.google.firebase.auth.FirebaseAuth
 import com.stato.jewintage.MainActivity
 import com.stato.jewintage.R
 import com.stato.jewintage.adapters.CategoryFilterAdapter
 import com.stato.jewintage.adapters.ImageAdapter
 import com.stato.jewintage.adapters.SalesAdapter
+import com.stato.jewintage.adapters.SalesGroupAdapter
 import com.stato.jewintage.databinding.FragmentSalesBinding
 import com.stato.jewintage.model.AddSales
 import com.stato.jewintage.model.DbManager
 import com.stato.jewintage.util.ImageManager
 import com.stato.jewintage.viewmodel.FirebaseViewModel
+import java.text.DecimalFormat
+import java.text.DecimalFormatSymbols
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
 
 class SalesFragment : Fragment(), SalesAdapter.OnEditClickListener,
-    SalesAdapter.OnDescriptionClickListener {
+    SalesAdapter.OnDescriptionClickListener, SalesGroupAdapter.OnDateClickListener {
     private var _binding: FragmentSalesBinding? = null
     private val binding get() = _binding!!
     private lateinit var salesAdapter: SalesAdapter
@@ -54,9 +61,8 @@ class SalesFragment : Fragment(), SalesAdapter.OnEditClickListener,
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        arguments?.let {
-            selectedDate = it.getString("selected_date")
-        }
+        val args: SalesFragmentArgs by navArgs()
+        selectedDate = args.selectedDate
     }
 
     override fun onCreateView(
@@ -72,7 +78,7 @@ class SalesFragment : Fragment(), SalesAdapter.OnEditClickListener,
 
         swipeRefreshLayout.setOnRefreshListener {
             updateUi()
-            firebaseViewModel.loadAllSales()
+            firebaseViewModel.loadAllSales(selectedDate)
             swipeRefreshLayout.isRefreshing = false
         }
 
@@ -84,10 +90,9 @@ class SalesFragment : Fragment(), SalesAdapter.OnEditClickListener,
         )
         setupRecyclerView()
         updateUi()
-        firebaseViewModel.loadAllSales()
+        firebaseViewModel.loadAllSales(selectedDate)
         drawerLayout = binding.drawerLayoutSales
-        val categories = resources.getStringArray(R.array.category) // Замените на реальные категории
-        categoryFilterAdapter = CategoryFilterAdapter(categories) { _, _ ->
+        categoryFilterAdapter = CategoryFilterAdapter(firebaseViewModel) { _, _ ->
             // Здесь вы можете обрабатывать выбор категории
         }
         val categoriesRecyclerView = binding.drawerFilterSales.categoriesRecyclerView
@@ -111,11 +116,37 @@ class SalesFragment : Fragment(), SalesAdapter.OnEditClickListener,
             binding.drawerFilterSales.dateToEditText.setText("")
             categoryFilterAdapter.resetCheckedCategories()
         }
-
-
         setupGroupsVisibility()
         setupFilterItemClickListeners()
         return binding.root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        // Настройка RecyclerView и адаптера
+        setupRecyclerView()
+        val args = SalesFragmentArgs.fromBundle(requireArguments())
+        // Загрузка и фильтрация данных с использованием selectedDate
+        val selectedDate = args.selectedDate
+        firebaseViewModel.filterSalesByDate(selectedDate)
+
+        // Обновление RecyclerView при изменении данных
+        firebaseViewModel.liveSalesData.observe(viewLifecycleOwner) { salesList ->
+            salesAdapter.setData(salesList)
+        }
+        firebaseViewModel.loadAllSales(selectedDate)
+
+    }
+    override fun onDateClick(date: String) {
+        selectedDate = date
+        firebaseViewModel.loadAllSales(selectedDate)
+    }
+    private fun setupRecyclerView(){
+        salesAdapter = SalesAdapter(act = requireActivity() as MainActivity, this, this)
+
+        binding.rcViewSales.layoutManager = LinearLayoutManager(context)
+        binding.rcViewSales.adapter = salesAdapter
     }
 
     private fun applyFilters() {
@@ -218,9 +249,14 @@ class SalesFragment : Fragment(), SalesAdapter.OnEditClickListener,
             return
         }
         isGetIntentFromMainActCalled = true
-        dbManager.getImagesFromDatabase(sale.idItem!!) { imageUrls ->
-            activity?.runOnUiThread {
-                updateVpAdapter(imageUrls)
+        Log.d("getIntentFromMainAct", "Fetching images for item id: ${sale.id}")
+        val uid = FirebaseAuth.getInstance().currentUser?.uid
+        if (uid != null) {
+            dbManager.getImagesFromDatabase(uid, sale.id!!) { imageUrls ->
+                activity?.runOnUiThread {
+                    Log.d("getIntentFromMainAct", "Received image URLs: $imageUrls")
+                    updateVpAdapter(imageUrls)
+                }
             }
         }
     }
@@ -229,17 +265,14 @@ class SalesFragment : Fragment(), SalesAdapter.OnEditClickListener,
 
     private fun updateVpAdapter(imageUrls: List<String>) {
         if (vpDes.adapter != adapter) {
+            Log.d("updateVpAdapter", "Setting adapter for view pager")
             vpDes.adapter = adapter
         }
+        Log.d("updateVpAdapter", "Filling adapter with image URLs: $imageUrls")
         ImageManager.fillImageSellArray(imageUrls, adapter)
     }
 
-    private fun setupRecyclerView(){
-        salesAdapter = SalesAdapter(act = requireActivity() as MainActivity, this, this)
 
-        binding.rcViewSales.layoutManager = LinearLayoutManager(context)
-        binding.rcViewSales.adapter = salesAdapter
-    }
 
 
     private fun updateUi() {
@@ -248,7 +281,7 @@ class SalesFragment : Fragment(), SalesAdapter.OnEditClickListener,
         }
 
 
-        firebaseViewModel.loadAllSales()
+        firebaseViewModel.loadAllSales(selectedDate)
     }
 
     override fun onDestroyView() {
@@ -327,7 +360,7 @@ class SalesFragment : Fragment(), SalesAdapter.OnEditClickListener,
             val updatedSellPrice = etSellPrice.text.toString()
             val updatedSellDate = tvSellDate.text.toString()
             val updatedQuantity = etQuantity.text.toString()
-            val paymentMethod = if (rbCash.isChecked) "Наличка" else "Visa\\MasterCard"
+            val paymentMethod = if (rbCash.isChecked) "Наличка" else "Visa/MasterCard"
 
             // Создайте экземпляр DbManager и обновите данные
             val dbManager = DbManager()
@@ -360,6 +393,7 @@ class SalesFragment : Fragment(), SalesAdapter.OnEditClickListener,
         }
     }
 
+    @SuppressLint("SetTextI18n")
     override fun onDescriptionClick(sale: AddSales) {
         isGetIntentFromMainActCalled = false
         val inflater = layoutInflater
@@ -372,6 +406,30 @@ class SalesFragment : Fragment(), SalesAdapter.OnEditClickListener,
         val tvQuantity = dialogView.findViewById<TextView>(R.id.tvDesQuantity)
         val tvPay = dialogView.findViewById<TextView>(R.id.tvDesPayMethod)
         val tvPercent = dialogView.findViewById<TextView>(R.id.tvDesComission)
+        val symbols = DecimalFormatSymbols(Locale.getDefault()).apply {
+            decimalSeparator = '.'
+        }
+        val df = DecimalFormat("#.##", symbols)
+        val percent = when {
+            sale.category == "Тканевые изделия" && (sale.paymentMethod == "Наличка" || sale.paymentMethod == "Cash") -> {
+                df.format(sale.price!!.toFloat() / 0.8)
+            }
+
+            sale.category == "Тканевые изделия" && sale.paymentMethod == "Visa/MasterCard" -> {
+                df.format(sale.price!!.toFloat() / 0.7808)
+            }
+
+            (sale.paymentMethod == "Наличка" || sale.paymentMethod == "Cash") -> {
+                df.format(sale.price!!.toFloat() / 0.9)
+            }
+
+            sale.paymentMethod == "Visa/MasterCard" -> {
+                df.format(sale.price!!.toFloat() / 0.8784)
+            }
+
+            else -> "0"
+        }
+        val newPercent = df.format(percent.toFloat() - sale.price!!.toFloat())
 
         // Заполните поля значениями текущего объекта продажи
         tvCat.text = sale.category
@@ -380,7 +438,7 @@ class SalesFragment : Fragment(), SalesAdapter.OnEditClickListener,
         "₾ ${sale.price}".also { tvSum.text = it }
         tvDate.text = sale.date
         tvPay.text = sale.paymentMethod
-        "₾ ${getPercentItem(sale.price, 0.1f)}".also { tvPercent.text = it }
+        tvPercent.text = "₾ $newPercent"
 
         val builder = AlertDialog.Builder(requireContext())
             .setView(dialogView)
@@ -388,19 +446,12 @@ class SalesFragment : Fragment(), SalesAdapter.OnEditClickListener,
 
         val alertDialog = builder.create()
 
-        vpDes = dialogView.findViewById(R.id.vpDes)
+        vpDes = dialogView.findViewById(R.id.vpDesSale)
         adapter = ImageAdapter()
         vpDes.adapter = adapter
         getIntentFromMainAct(sale)
 
         alertDialog.show()
     }
-
-    private fun getPercentItem(price: String?, percent: Float?): Float {
-        val parsedPrice = price?.toFloatOrNull() ?: 0f
-        val parsedQuantity = percent ?: 0f
-        return parsedPrice * parsedQuantity
-    }
-
 
 }

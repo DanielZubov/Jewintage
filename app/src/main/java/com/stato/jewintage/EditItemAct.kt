@@ -2,21 +2,32 @@ package com.stato.jewintage
 
 import android.app.DatePickerDialog
 import android.graphics.Bitmap
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.net.Uri
 import android.os.Bundle
+import android.view.LayoutInflater
 import android.view.View
 import android.widget.ArrayAdapter
+import android.widget.Button
+import android.widget.Toast
+import androidx.activity.viewModels
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.widget.doOnTextChanged
 import com.google.android.gms.tasks.OnCompleteListener
+import com.google.android.material.textfield.TextInputEditText
+import com.google.android.material.textfield.TextInputLayout
 import com.stato.jewintage.adapters.ImageAdapter
 import com.stato.jewintage.databinding.ActivityEditItemBinding
 import com.stato.jewintage.fragments.FragmentCloseInterface
 import com.stato.jewintage.fragments.ImageListFragment
 import com.stato.jewintage.model.AddNom
+import com.stato.jewintage.model.Category
 import com.stato.jewintage.model.DbManager
 import com.stato.jewintage.util.ImageManager
 import com.stato.jewintage.util.ImagePicker
+import com.stato.jewintage.viewmodel.FirebaseViewModel
 import java.io.ByteArrayOutputStream
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -32,6 +43,7 @@ class EditItemAct : AppCompatActivity(), FragmentCloseInterface {
     private var imageIndex = 0
     private var isEditState = false
     private var addNom: AddNom? = null
+    private val firebaseViewModel: FirebaseViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -42,20 +54,20 @@ class EditItemAct : AppCompatActivity(), FragmentCloseInterface {
 
     }
 
-    private fun checkEditState(){
+    private fun checkEditState() {
         isEditState = isEditState()
-        if (isEditState){
+        if (isEditState) {
             @Suppress("DEPRECATION")
             addNom = intent.getSerializableExtra(MainActivity.ADS_DATA) as AddNom
-            if (addNom != null)fillViews(addNom!!)
+            if (addNom != null) fillViews(addNom!!)
         }
     }
 
-    private fun isEditState(): Boolean{
+    private fun isEditState(): Boolean {
         return intent.getBooleanExtra(MainActivity.EDIT_STATE, false)
     }
 
-    private fun fillViews(addNom: AddNom) = with(binding){
+    private fun fillViews(addNom: AddNom) = with(binding) {
         edTICategory.setText(addNom.category)
         edTIDescription.setText(addNom.description)
         edTIPrice.setText(addNom.price)
@@ -65,15 +77,94 @@ class EditItemAct : AppCompatActivity(), FragmentCloseInterface {
     }
 
     private fun init() {
+        firebaseViewModel.loadAllCategories()
         imageAdapter = ImageAdapter()
         binding.vpImages.adapter = imageAdapter
     }
 
     override fun onResume() {
         super.onResume()
-        val category = resources.getStringArray(R.array.category)
-        val arrayAdapter = ArrayAdapter(this, R.layout.dropdown_category, category)
-        binding.edTICategory.setAdapter(arrayAdapter)
+        firebaseViewModel.loadAllCategories()
+        firebaseViewModel.liveCategoryData.observe(this) { categoryList ->
+            val categories = categoryList.map { it.name }
+            val arrayAdapter = ArrayAdapter(this, R.layout.dropdown_category, categories)
+            binding.edTICategory.setAdapter(arrayAdapter)
+        }
+
+        binding.ibAddCategory.setOnClickListener {
+            val layout = LayoutInflater.from(this).inflate(R.layout.dialog_new_category, null)
+
+            val categoryNameEditText: TextInputEditText = layout.findViewById(R.id.etNameCategory)
+            val layoutCategory: TextInputLayout = layout.findViewById(R.id.layoutNewCategory)
+            val layoutCategoryCommission: TextInputLayout = layout.findViewById(R.id.layoutNewCategoryCommission)
+            val categoryCommissionEditText: TextInputEditText = layout.findViewById(R.id.etCommissionCategory)
+            val submitButton: Button = layout.findViewById(R.id.btnSubmitSave)
+
+            val dialog = AlertDialog.Builder(this)
+                .setView(layout)
+                .setCancelable(true)
+                .create()
+
+            submitButton.setOnClickListener {
+                var isFormValid = true
+                val categoryName = categoryNameEditText.text.toString()
+                val categoryCommission = categoryCommissionEditText.text.toString().toFloatOrNull()
+
+                if (categoryName.isBlank()) {
+                    layoutCategory.error = getString(R.string.error_field_required)
+                    isFormValid = false
+                }
+
+                if (categoryCommission == null) {
+                    layoutCategoryCommission.error = getString(R.string.error_field_required)
+                    categoryCommissionEditText.setText("0")
+                    isFormValid = false
+                }
+
+                if (!isFormValid) {
+                    return@setOnClickListener
+                }
+
+                val newCategory = Category().apply {
+                    id = dbManager.dbCategories.push().key
+                    uid = dbManager.auth.uid
+                    name = categoryName
+                    commission = categoryCommission
+                }
+                dbManager.addNewCategory(
+                    newCategory,
+                    object : DbManager.FinishWorkListener {
+                        override fun onFinish(isDone: Boolean) {
+                            if (isDone) {
+                                // обновляем список категорий
+                                firebaseViewModel.loadAllCategories()
+                                dialog.dismiss() // Закрываем диалог только при успешном сохранении
+                            } else {
+                                Toast.makeText(
+                                    this@EditItemAct,
+                                    getString(R.string.error_saving_in_the_database),
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                        }
+                    })
+            }
+
+            dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+            dialog.show()
+        }
+
+
+
+        // Получение текущей даты
+        val currentDate = Calendar.getInstance().time
+
+// Форматирование даты в строку
+        val dateFormat = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault())
+        val currentDateStr = dateFormat.format(currentDate)
+
+// Установка даты в поле ввода
+        binding.edTIDate.setText(currentDateStr)
         // Слушатель клика на поле ввода даты
         binding.edTIDate.setOnClickListener {
             // Получение текущей даты
@@ -124,39 +215,49 @@ class EditItemAct : AppCompatActivity(), FragmentCloseInterface {
 
     fun onClickGetImages(view: View) {
         if (imageAdapter.mainArray.size == 0) {
-            ImagePicker.getMultiImages(this,3)
+            ImagePicker.getMultiImages(this, 3)
         } else {
             openChooseItemFrag(null)
             chooseImageFrag?.updateAdapterFromEdit(imageAdapter.mainArray)
         }
 
     }
+
+    fun onClickPublishNum(view: View) {
+        if (validateFields()) {
+            binding.progressLayout.visibility = View.VISIBLE
+            addNom = fillAddNum()
+            uploadImages()
+        }
+    }
+
+
     private fun validateFields(): Boolean {
         var isValid = true
 
         if (binding.edTICategory.text?.isEmpty() == true) {
-            binding.layoutTINumCategory.error = "Поле не может быть пустым"
+            binding.layoutTINumCategory.error = getString(R.string.error_field_required)
             isValid = false
         } else {
             binding.layoutTINumCategory.error = null
         }
 
         if (binding.edTIPrice.text?.isEmpty() == true) {
-            binding.layoutTIPrice.error = "Поле не может быть пустым"
+            binding.layoutTIPrice.error = getString(R.string.error_field_required)
             isValid = false
         } else {
             binding.layoutTIPrice.error = null
         }
 
         if (binding.edTIDate.text?.isEmpty() == true) {
-            binding.layoutTIDate.error = "Поле не может быть пустым"
+            binding.layoutTIDate.error = getString(R.string.error_field_required)
             isValid = false
         } else {
             binding.layoutTIDate.error = null
         }
 
         if (binding.edTIquantity.text?.isEmpty() == true) {
-            binding.layoutTIquantity.error = "Поле не может быть пустым"
+            binding.layoutTIquantity.error = getString(R.string.error_field_required)
             isValid = false
         } else {
             binding.layoutTIquantity.error = null
@@ -166,20 +267,11 @@ class EditItemAct : AppCompatActivity(), FragmentCloseInterface {
     }
 
 
-
-    fun onClickPublishNum(view: View) {
-        if (validateFields()) {
-        binding.progressLayout.visibility = View.VISIBLE
-        addNom = fillAddNum()
-        uploadImages()
-        }
-    }
-
-    private fun onPublishFinish(): DbManager.FinishWorkListener{
-        return object: DbManager.FinishWorkListener{
+    private fun onPublishFinish(): DbManager.FinishWorkListener {
+        return object : DbManager.FinishWorkListener {
             override fun onFinish(isDone: Boolean) {
                 binding.progressLayout.visibility = View.GONE
-                if(isDone)finish()
+                if (isDone) finish()
             }
 
         }
@@ -195,9 +287,9 @@ class EditItemAct : AppCompatActivity(), FragmentCloseInterface {
                 edTIPrice.text.toString(),
                 edTIDate.text.toString(),
                 edTIquantity.text.toString(),
-                addNom?.mainImage ?:"empty",
-                addNom?.image2 ?:"empty",
-                addNom?.image3 ?:"empty",
+                addNom?.mainImage ?: "empty",
+                addNom?.image2 ?: "empty",
+                addNom?.image3 ?: "empty",
                 addNom?.id ?: dbManager.db.push().key,
                 dbManager.auth.uid
 
@@ -216,7 +308,7 @@ class EditItemAct : AppCompatActivity(), FragmentCloseInterface {
     fun openChooseItemFrag(newList: ArrayList<Uri>?) {
 
         chooseImageFrag = ImageListFragment(this)
-        if (newList != null)chooseImageFrag?.resizeSelectedImages(newList, true, this)
+        if (newList != null) chooseImageFrag?.resizeSelectedImages(newList, true, this)
         binding.scrollViewMain.visibility = View.GONE
         binding.scrollbtnLayout.visibility = View.GONE
         val fm = supportFragmentManager.beginTransaction()
@@ -256,50 +348,53 @@ class EditItemAct : AppCompatActivity(), FragmentCloseInterface {
     }
 
 
-    private fun nextImage(uri: String){
+    private fun nextImage(uri: String) {
         setImageUriToAddNom(uri)
         imageIndex++
         uploadImages()
     }
 
-    private fun setImageUriToAddNom(uri: String){
-        when(imageIndex){
+    private fun setImageUriToAddNom(uri: String) {
+        when (imageIndex) {
             0 -> addNom = addNom?.copy(mainImage = uri)
             1 -> addNom = addNom?.copy(image2 = uri)
             2 -> addNom = addNom?.copy(image3 = uri)
         }
     }
 
-    private fun getUrlFromAd(): String{
+    private fun getUrlFromAd(): String {
         return listOf(
             addNom?.mainImage!!,
             addNom?.image2!!,
             addNom?.image3!!
         )[imageIndex]
     }
-    private fun prepareImageByteArray(bitmap: Bitmap): ByteArray{
+
+    private fun prepareImageByteArray(bitmap: Bitmap): ByteArray {
         val outStream = ByteArrayOutputStream()
         bitmap.compress(Bitmap.CompressFormat.PNG, 20, outStream)
         return outStream.toByteArray()
     }
-    private fun uploadImage(byteArray: ByteArray, listener: OnCompleteListener<Uri>){
+
+    private fun uploadImage(byteArray: ByteArray, listener: OnCompleteListener<Uri>) {
         val imStorageReference = dbManager.dbStorage.child(dbManager.auth.uid!!)
             .child("image_${System.currentTimeMillis()}")
         val upTask = imStorageReference.putBytes(byteArray)
-        upTask.continueWithTask{
-            imStorageReference.downloadUrl
-        }.addOnCompleteListener(listener)
-    }
-    private fun updateImage(byteArray: ByteArray, url: String, listener: OnCompleteListener<Uri>){
-        val imStorageReference = dbManager.dbStorage.storage
-            .getReferenceFromUrl(url)
-        val upTask = imStorageReference.putBytes(byteArray)
-        upTask.continueWithTask{
+        upTask.continueWithTask {
             imStorageReference.downloadUrl
         }.addOnCompleteListener(listener)
     }
 
-    private fun deleteImageByUrl(oldUrl: String, listener: OnCompleteListener<Void>){
+    private fun updateImage(byteArray: ByteArray, url: String, listener: OnCompleteListener<Uri>) {
+        val imStorageReference = dbManager.dbStorage.storage
+            .getReferenceFromUrl(url)
+        val upTask = imStorageReference.putBytes(byteArray)
+        upTask.continueWithTask {
+            imStorageReference.downloadUrl
+        }.addOnCompleteListener(listener)
+    }
+
+    private fun deleteImageByUrl(oldUrl: String, listener: OnCompleteListener<Void>) {
         dbManager.dbStorage.storage
             .getReferenceFromUrl(oldUrl)
             .delete().addOnCompleteListener(listener)

@@ -3,20 +3,6 @@
     xmlns:tools="http://schemas.android.com/tools"
     tools:showIn="navigation_view">
 
-    <item android:title="@string/menu">
-        <menu>
-            <item
-                android:title="@string/salesFragment"
-                android:id="@+id/salesFragment"/>
-            <item
-                android:title="@string/nomenclatureFragment"
-                android:id="@+id/nomenclatureFragment"/>
-            <item
-                android:title="@string/costFragment"
-                android:id="@+id/costFragment"/>
-
-        </menu>
-    </item>
     <item android:title="@string/account">
         <menu>
             <item
@@ -29,7 +15,13 @@
                 android:title="@string/reg_logout" />
             <item
                 android:id="@+id/register"
+                android:icon="@drawable/ic_registration"
                 android:title="@string/reg_title" />
+            <item
+                android:id="@+id/settings"
+                android:icon="@drawable/ic_settings"
+                android:title="@string/settings" />
+
 
         </menu>
     </item>

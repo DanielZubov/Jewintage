@@ -27,7 +27,6 @@
         android:layout_height="match_parent"
         android:layout_marginTop="16dp"
         android:hint="@string/category"
-        app:helperTextTextColor="@color/design_default_color_error"
         app:startIconDrawable="@drawable/ic_category">
 
         <AutoCompleteTextView
@@ -48,8 +47,6 @@
         app:counterMaxLength="50"
         app:endIconMode="clear_text"
         app:errorEnabled="true"
-        app:errorIconDrawable="@drawable/baseline_error_outline_24"
-        app:helperTextTextColor="@color/design_default_color_error"
         app:startIconDrawable="@drawable/ic_description">
 
         <com.google.android.material.textfield.TextInputEditText

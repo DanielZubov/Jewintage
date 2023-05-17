@@ -1,6 +1,7 @@
 package com.stato.jewintage
 
 import android.app.DatePickerDialog
+import android.util.Log
 import android.widget.AutoCompleteTextView
 import android.widget.Button
 import android.widget.RadioButton
@@ -8,11 +9,15 @@ import android.widget.RadioGroup
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import com.google.android.material.textfield.TextInputEditText
 import com.google.firebase.auth.FirebaseAuth
 import com.stato.jewintage.model.AddNom
 import com.stato.jewintage.model.AddSales
 import com.stato.jewintage.model.DbManager
+import kotlinx.coroutines.launch
+import java.text.DecimalFormat
+import java.text.DecimalFormatSymbols
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
@@ -133,30 +138,49 @@ fun AppCompatActivity.saveSaleData(
         val uid = firebaseUser.uid
         val dbManager = DbManager()
 
-        dbManager.findSaleByDate(
-            uid,
-            addNom.id!!,
-            sellDate,
-            paymentMethod,
-            object : DbManager.FindSaleListener {
-                override fun onFinish(saleKey: String?, sale: AddSales?) {
-                    val upPrice = (sellPrice.toInt() * quantity.toInt()).toString()
-                    if (sale == null || saleKey == null) {
-                        val newSaleKey = dbManager.dbSales.push().key
-                        val newSale = AddSales(
-                            category = addNom.category,
-                            description = addNom.description,
-                            price = upPrice,
-                            date = sellDate,
-                            mainImage = addNom.mainImage,
-                            image2 = addNom.image2,
-                            image3 = addNom.image3,
-                            soldQuantity = quantity,
-                            paymentMethod = paymentMethod,
-                            id = addNom.id,
-                            uid = uid,
-                            idItem = newSaleKey
-                        )
+        // Запускаем новую корутину
+        lifecycleScope.launch {
+            // Получаем комиссии
+            val categoryCommission =
+                dbManager.getCommissionCategory(uid, addNom.category!!) ?: 0f
+            val paymentMethodCommission =
+                dbManager.getCommissionPaymentMethod(uid, paymentMethod) ?: 0f
+
+            // Множитель для цены, основанный на комиссиях
+            val priceMultiplier = (1 - (categoryCommission / 100)) * (1 - (paymentMethodCommission / 100))
+            Log.d("MyLog","saveSaleDataCommissions: $priceMultiplier, $categoryCommission, $paymentMethodCommission")
+
+            dbManager.findSaleByDate(
+                uid,
+                addNom.id!!,
+                sellDate,
+                paymentMethod,
+                object : DbManager.FindSaleListener {
+                    val symbols = DecimalFormatSymbols(Locale.getDefault()).apply {
+                        decimalSeparator = '.'
+                    }
+                    val df = DecimalFormat("#.##", symbols)
+                    val newPrice =
+                        df.format(sellPrice.toFloat() * quantity.toFloat() * priceMultiplier)
+
+
+                    override fun onFinish(saleKey: String?, sale: AddSales?) {
+                        if (sale == null || saleKey == null) {
+                            val newSaleKey = dbManager.dbSales.push().key
+                            val newSale = AddSales(
+                                category = addNom.category,
+                                description = addNom.description,
+                                price = newPrice,
+                                date = sellDate,
+                                mainImage = addNom.mainImage,
+                                image2 = addNom.image2,
+                                image3 = addNom.image3,
+                                soldQuantity = quantity,
+                                paymentMethod = paymentMethod,
+                                id = newSaleKey,
+                                uid = uid,
+                                idItem = addNom.id
+                            )
 
                         dbManager.saveSale(newSale, object : DbManager.FinishWorkListener {
                             override fun onFinish(isDone: Boolean) {
@@ -228,6 +252,7 @@ fun AppCompatActivity.saveSaleData(
                     }
                 }
             })
+        }
     }
 }
 

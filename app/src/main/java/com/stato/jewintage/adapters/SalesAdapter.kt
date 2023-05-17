@@ -99,11 +99,11 @@ class SalesAdapter(
             "${sale.soldQuantity} шт.".also { tvSaleItemQuant.text = it }
             // Добавлена проверка перед вызовом Picasso.load()
             val mainImage = sale.mainImage
-            if (!mainImage.isNullOrEmpty()) {
+            if (!mainImage.isNullOrEmpty() && mainImage != "empty") {
                 Picasso.get().load(mainImage).into(ivSaleItem)
             } else {
                 val context = binding.root.context
-                val defaultImage = ContextCompat.getDrawable(context, R.drawable.image_item)
+                val defaultImage = ContextCompat.getDrawable(context, R.drawable.no_image_available)
                 ivSaleItem.setImageDrawable(defaultImage)
             }
             mainOnClick(sale)

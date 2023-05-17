@@ -1,7 +1,6 @@
 package com.stato.jewintage.adapters
 
 import android.content.Intent
-import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -102,24 +101,21 @@ class AddRcAdapter(
         fun setData(position: Int) = with(binding) {
             val addNom = addArray[position]
             if (addNom.quantity == "0") {
-                cvItem.setCardBackgroundColor(Color.LTGRAY)
-                ibSellItem.visibility = View.GONE
+                cvItem.visibility = View.GONE
             } else {
-                cvItem.setCardBackgroundColor(Color.WHITE)
-                ibSellItem.visibility = View.VISIBLE
+                cvItem.visibility = View.VISIBLE
             }
             tvNumItemCat.text = addNom.category
             tvNumItemDescription.text = addNom.description
             "₾ ${addNom.price}".also { tvNumItemPrice.text = it }
             "${addNom.quantity} шт.".also { tvNumItemQuant.text = it }
 
-            // Добавлена проверка перед вызовом Picasso.load()
             val mainImage = addNom.mainImage
-            if (!mainImage.isNullOrEmpty()) {
+            if (!mainImage.isNullOrEmpty() && mainImage != "empty") {
                 Picasso.get().load(mainImage).into(ivNomItem)
             } else {
                 val context = binding.root.context
-                val defaultImage = ContextCompat.getDrawable(context, R.drawable.image_item)
+                val defaultImage = ContextCompat.getDrawable(context, R.drawable.no_image_available)
                 ivNomItem.setImageDrawable(defaultImage)
             }
 

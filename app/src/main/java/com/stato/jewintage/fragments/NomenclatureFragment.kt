@@ -3,6 +3,7 @@ package com.stato.jewintage.fragments
 import android.app.DatePickerDialog
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuInflater
@@ -20,6 +21,7 @@ import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.google.android.material.textfield.TextInputEditText
@@ -35,6 +37,9 @@ import com.stato.jewintage.model.AddNom
 import com.stato.jewintage.model.AddSales
 import com.stato.jewintage.model.DbManager
 import com.stato.jewintage.viewmodel.FirebaseViewModel
+import kotlinx.coroutines.launch
+import java.text.DecimalFormat
+import java.text.DecimalFormatSymbols
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
@@ -77,9 +82,7 @@ class NomenclatureFragment : Fragment(), AddRcAdapter.SellButtonClickListener {
         initViewModel()
         firebaseViewModel.loadAllAds()
         drawerLayout = binding.drawerLayout
-        val categories =
-            resources.getStringArray(R.array.category) // Замените на реальные категории
-        categoryFilterAdapter = CategoryFilterAdapter(categories) { _, _ ->
+        categoryFilterAdapter = CategoryFilterAdapter(firebaseViewModel) { _, _ ->
             // Здесь вы можете обрабатывать выбор категории
         }
         val categoriesRecyclerView = binding.drawerFilter.categoriesRecyclerView
@@ -239,7 +242,6 @@ class NomenclatureFragment : Fragment(), AddRcAdapter.SellButtonClickListener {
     }
 
 
-
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
@@ -257,103 +259,134 @@ class NomenclatureFragment : Fragment(), AddRcAdapter.SellButtonClickListener {
             val uid = firebaseUser.uid
             val dbManager = DbManager()
 
-            dbManager.findSaleByDate(
-                uid,
-                addNom.id!!,
-                sellDate,
-                paymentMethod,
-                object : DbManager.FindSaleListener {
-                    val upPrice = (sellPrice.toInt() * quantity.toInt()).toString()
-                    override fun onFinish(saleKey: String?, sale: AddSales?) {
-                        if (sale == null || saleKey == null) {
-                            val newSaleKey = dbManager.dbSales.push().key
-                            val newSale = AddSales(
-                                category = addNom.category,
-                                description = addNom.description,
-                                price = upPrice,
-                                date = sellDate,
-                                mainImage = addNom.mainImage,
-                                image2 = addNom.image2,
-                                image3 = addNom.image3,
-                                soldQuantity = quantity,
-                                paymentMethod = paymentMethod,
-                                id = newSaleKey,
-                                uid = uid,
-                                idItem = addNom.id
-                            )
+            // Запускаем новую корутину
+            lifecycleScope.launch {
+                // Получаем комиссии
+                val categoryCommission =
+                    dbManager.getCommissionCategory(uid, addNom.category!!) ?: 0f
+                val paymentMethodCommission =
+                    dbManager.getCommissionPaymentMethod(uid, paymentMethod) ?: 0f
+                val priceMultiplier: Float
+                if (paymentMethod == "Visa/MasterCard") {
+                    priceMultiplier =
+                        (1 - (categoryCommission / 100)) * (1 - (paymentMethodCommission / 100))
+                    Log.d(
+                        "MyLog",
+                        "Visa/MasterCard: $priceMultiplier, $categoryCommission, $paymentMethodCommission"
+                    )
+                } else {
+                    priceMultiplier = 1 - ((categoryCommission + paymentMethodCommission) / 100)
+                    Log.d(
+                        "MyLog",
+                        "Cash: $priceMultiplier, $categoryCommission, $paymentMethodCommission")
+                }
 
-                            dbManager.saveSale(newSale, object : DbManager.FinishWorkListener {
-                                override fun onFinish(isDone: Boolean) {
-                                    if (isDone) {
-                                        Toast.makeText(
-                                            requireActivity() as MainActivity,
-                                            "Данные продажи успешно сохранены",
-                                            Toast.LENGTH_SHORT
-                                        ).show()
-                                    } else {
-                                        Toast.makeText(
-                                            requireActivity() as MainActivity,
-                                            "Ошибка при сохранении данных продажи",
-                                            Toast.LENGTH_SHORT
-                                        ).show()
-                                    }
-                                }
-                            })
-                        } else {
-                            val newQuantity =
-                                (sale.soldQuantity!!.toInt() + quantity.toInt()).toString()
-                            val newPrice =
-                                (sale.price!!.toInt() + (sellPrice.toInt() * quantity.toInt())).toString()
+                dbManager.findSaleByDate(
+                    uid,
+                    addNom.id!!,
+                    sellDate,
+                    paymentMethod,
+                    object : DbManager.FindSaleListener {
+                        val symbols = DecimalFormatSymbols(Locale.getDefault()).apply {
+                            decimalSeparator = '.'
+                        }
+                        val df = DecimalFormat("#.##", symbols)
+                        val newPrice =
+                            df.format(sellPrice.toFloat() * quantity.toFloat() * priceMultiplier)
 
-                            dbManager.updateSaleQuantityAndPrice(
-                                addNom.uid!!,
-                                saleKey,
-                                newQuantity,
-                                newPrice,
-                                object : DbManager.FinishWorkListener {
+
+                        override fun onFinish(saleKey: String?, sale: AddSales?) {
+                            if (sale == null || saleKey == null) {
+                                val newSaleKey = dbManager.dbSales.push().key
+                                val newSale = AddSales(
+                                    category = addNom.category,
+                                    description = addNom.description,
+                                    price = newPrice,
+                                    date = sellDate,
+                                    mainImage = addNom.mainImage,
+                                    image2 = addNom.image2,
+                                    image3 = addNom.image3,
+                                    soldQuantity = quantity,
+                                    paymentMethod = paymentMethod,
+                                    id = newSaleKey,
+                                    uid = uid,
+                                    idItem = addNom.id
+                                )
+
+                                dbManager.saveSale(newSale, object : DbManager.FinishWorkListener {
                                     override fun onFinish(isDone: Boolean) {
                                         if (isDone) {
-
                                             Toast.makeText(
                                                 requireActivity() as MainActivity,
-                                                "Данные продажи успешно обновлены",
+                                                "Данные продажи успешно сохранены",
                                                 Toast.LENGTH_SHORT
                                             ).show()
                                         } else {
                                             Toast.makeText(
                                                 requireActivity() as MainActivity,
-                                                "Ошибка при обновлении данных продажи",
+                                                "Ошибка при сохранении данных продажи",
                                                 Toast.LENGTH_SHORT
                                             ).show()
                                         }
                                     }
                                 })
-                        }
-                    }
-                })
+                            } else {
+                                val newQuantity =
+                                    (sale.soldQuantity!!.toInt() + quantity.toInt()).toString()
+                                val newPrice =
+                                    df.format(sale.price!!.toFloat() + (newPrice.toFloat() * quantity.toFloat()))
+                                        .toString()
 
-            // Обновление количества товара после продажи
-            val newQuantity = (addNom.quantity!!.toInt() - quantity.toInt()).toString()
-            dbManager.updateQuantity(
-                addNom,
-                newQuantity,
-                object : DbManager.FinishWorkListener {
-                    override fun onFinish(isDone: Boolean) {
-                        if (isDone) {
-                            Toast.makeText(
-                                requireActivity() as MainActivity,
-                                "Количество товара успешно обновлено",
-                                Toast.LENGTH_SHORT
-                            ).show()
-                        } else {
-                            Toast.makeText(
-                                requireActivity() as MainActivity,
-                                "Ошибка при обновлении количества товара",
-                                Toast.LENGTH_SHORT
-                            ).show()
+                                dbManager.updateSaleQuantityAndPrice(
+                                    addNom.uid!!,
+                                    saleKey,
+                                    newQuantity,
+                                    newPrice,
+                                    object : DbManager.FinishWorkListener {
+                                        override fun onFinish(isDone: Boolean) {
+                                            if (isDone) {
+
+                                                Toast.makeText(
+                                                    requireActivity() as MainActivity,
+                                                    "Данные продажи успешно обновлены",
+                                                    Toast.LENGTH_SHORT
+                                                ).show()
+                                            } else {
+                                                Toast.makeText(
+                                                    requireActivity() as MainActivity,
+                                                    "Ошибка при обновлении данных продажи",
+                                                    Toast.LENGTH_SHORT
+                                                ).show()
+                                            }
+                                        }
+                                    })
+                            }
                         }
-                    }
-                })
+                    })
+
+                // Обновление количества товара после продажи
+                val newQuantity = (addNom.quantity!!.toInt() - quantity.toInt()).toString()
+                dbManager.updateQuantity(
+                    addNom,
+                    newQuantity,
+                    object : DbManager.FinishWorkListener {
+                        override fun onFinish(isDone: Boolean) {
+                            if (isDone) {
+                                Toast.makeText(
+                                    requireActivity() as MainActivity,
+                                    "Количество товара успешно обновлено",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            } else {
+                                Toast.makeText(
+                                    requireActivity() as MainActivity,
+                                    "Ошибка при обновлении количества товара",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                        }
+                    })
+            }
         }
     }
 

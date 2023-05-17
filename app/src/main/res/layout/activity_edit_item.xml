@@ -22,28 +22,45 @@
             android:orientation="vertical"
             android:paddingBottom="60dp">
 
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/layoutTINumCategory"
-                style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
-                android:layout_marginTop="32dp"
-                android:layout_marginEnd="16dp"
-                android:hint="@string/category"
-                app:helperTextTextColor="@color/design_default_color_error"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                app:startIconDrawable="@drawable/ic_category">
+                android:orientation="horizontal"
+                android:paddingTop="16dp">
 
-                <AutoCompleteTextView
-                    android:id="@+id/edTICategory"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:inputType="none"
-                    tools:ignore="LabelFor,TextContrastCheck,VisualLintTextFieldSize" />
-            </com.google.android.material.textfield.TextInputLayout>
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/layoutTINumCategory"
+                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    android:layout_marginStart="16dp"
+                    android:layout_weight="1"
+                    android:hint="@string/category"
+                    app:startIconDrawable="@drawable/ic_category">
+
+                    <AutoCompleteTextView
+                        android:id="@+id/edTICategory"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:inputType="none"
+                        tools:ignore="LabelFor,TextContrastCheck,VisualLintTextFieldSize" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <ImageButton
+                    android:id="@+id/ibAddCategory"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:layout_gravity="center_vertical"
+                    android:layout_marginStart="16dp"
+                    android:layout_marginEnd="18dp"
+                    android:background="@android:color/transparent"
+                    android:contentDescription="@string/account"
+                    app:srcCompat="@drawable/ic_add" />
+
+
+            </LinearLayout>
+
 
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/layoutTIDescription"
@@ -58,8 +75,6 @@
                 app:counterMaxLength="50"
                 app:endIconMode="clear_text"
                 app:errorEnabled="true"
-                app:errorIconDrawable="@drawable/baseline_error_outline_24"
-                app:helperTextTextColor="@color/design_default_color_error"
                 app:layout_constraintEnd_toEndOf="@+id/layoutTINumCategory"
                 app:layout_constraintStart_toStartOf="@+id/layoutTINumCategory"
                 app:layout_constraintTop_toBottomOf="@+id/layoutTINumCategory"
@@ -152,8 +167,6 @@
                 android:hint="@string/price"
                 app:endIconMode="clear_text"
                 app:errorEnabled="true"
-                app:errorIconDrawable="@drawable/baseline_error_outline_24"
-                app:helperTextTextColor="@color/design_default_color_error"
                 app:layout_constraintEnd_toEndOf="@id/layoutTINumCategory"
                 app:layout_constraintStart_toStartOf="@id/layoutTINumCategory"
                 app:layout_constraintTop_toBottomOf="@id/vpPhoto"
@@ -185,10 +198,10 @@
                     android:id="@+id/edTIDate"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:hint="@string/date"
-                    android:inputType="none"
                     android:clickable="true"
                     android:focusable="false"
+                    android:hint="@string/date"
+                    android:inputType="none"
                     tools:ignore="TextContrastCheck,VisualLintTextFieldSize" />
             </com.google.android.material.textfield.TextInputLayout>
 
@@ -203,8 +216,6 @@
                 android:hint="@string/quantity"
                 app:endIconMode="clear_text"
                 app:errorEnabled="true"
-                app:errorIconDrawable="@drawable/baseline_error_outline_24"
-                app:helperTextTextColor="@color/design_default_color_error"
                 app:layout_constraintEnd_toEndOf="@id/layoutTINumCategory"
                 app:layout_constraintStart_toStartOf="@id/layoutTINumCategory"
                 app:layout_constraintTop_toBottomOf="@id/layoutTIDate"
@@ -266,7 +277,6 @@
             android:layout_marginBottom="8dp"
             android:fontFamily="@font/comfortaa_bold"
             android:text="@string/uploadPhoto"
-            android:textColor="@color/md_theme_light_onSecondary"
             app:layout_constraintBottom_toTopOf="@+id/progressBar3"
             app:layout_constraintEnd_toEndOf="@+id/progressBar3"
             app:layout_constraintStart_toStartOf="@+id/progressBar3" />

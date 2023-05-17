@@ -1,0 +1,31 @@
+<PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <PreferenceCategory app:title="@string/general_header">
+
+        <ListPreference
+            app:key="theme"
+            app:title="@string/theme"
+            app:entries="@array/theme_names"
+            app:entryValues="@array/theme_values"
+            app:defaultValue="@string/default_theme"
+            app:dialogTitle="@string/select_theme" />
+
+    </PreferenceCategory>
+    <PreferenceCategory app:title="@string/paymethod">
+        <com.stato.jewintage.util.NumberEditTextPreference
+            app:key="commissionCash"
+            app:title="@string/cash_coefficient"
+            android:inputType="numberDecimal"
+            app:summary="@string/cash_coefficient_summary" />
+        <com.stato.jewintage.util.NumberEditTextPreference
+            app:key="commissionCard"
+            app:title="@string/visa_coefficient"
+            android:inputType="numberDecimal"
+            app:summary="@string/visa_coefficient_summary" />
+    </PreferenceCategory>
+    <PreferenceCategory app:title="@string/product_category"/>
+
+
+
+</PreferenceScreen>
