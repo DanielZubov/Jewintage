@@ -10,6 +10,7 @@ import com.stato.jewintage.R
 import com.stato.jewintage.model.Category
 import com.stato.jewintage.viewmodel.FirebaseViewModel
 
+@SuppressLint("NotifyDataSetChanged")
 class CategoryFilterAdapter(
     private val firebaseViewModel: FirebaseViewModel,
     private val onCategoryChecked: (Category, Boolean) -> Unit
@@ -58,7 +59,6 @@ class CategoryFilterAdapter(
         }
     }
 
-    @SuppressLint("NotifyDataSetChanged")
     fun resetCheckedCategories() {
         checkedCategories.clear()
         notifyDataSetChanged()

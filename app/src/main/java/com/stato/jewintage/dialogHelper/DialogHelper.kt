@@ -1,6 +1,8 @@
 package com.stato.jewintage.dialogHelper
 
 import android.app.AlertDialog
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.view.View
 import android.widget.Toast
 import com.stato.jewintage.MainActivity
@@ -12,7 +14,7 @@ class DialogHelper(act: MainActivity) {
     private val activity = act
     val accountHelper = AccountHelper(activity)
 
-    fun createSignDialog(index:Int) {
+    fun createSignDialog(index: Int) {
         val builder = AlertDialog.Builder(activity)
         val bindingDialog = SignDialogBinding.inflate(activity.layoutInflater)
         builder.setView(bindingDialog.root)
@@ -31,24 +33,32 @@ class DialogHelper(act: MainActivity) {
             accountHelper.signInWithGoogle()
             dialog.dismiss()
         }
-            dialog.show()
+        dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+        dialog.show()
 
     }
 
     private fun setOnClickResetPassword(bindingDialog: SignDialogBinding, dialog: AlertDialog?) {
         dialog?.dismiss()
-        if (bindingDialog.edEmailInput.text?.isNotEmpty()!!){
-            activity.auth.sendPasswordResetEmail(bindingDialog.edEmailInput.text.toString()).addOnCompleteListener { task->
-                if (task.isSuccessful){
-                    Toast.makeText(activity,
-                        R.string.reg_reset_password,
-                        Toast.LENGTH_SHORT).show()
+        if (bindingDialog.edEmailInput.text?.isNotEmpty()!!) {
+            activity.auth.sendPasswordResetEmail(bindingDialog.edEmailInput.text.toString())
+                .addOnCompleteListener { task ->
+                    if (task.isSuccessful) {
+                        Toast.makeText(
+                            activity,
+                            R.string.reg_reset_password,
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
                 }
-            }
         }
     }
 
-    private fun setOnClickSignUpIn(index: Int, bindingDialog: SignDialogBinding, dialog: AlertDialog?) {
+    private fun setOnClickSignUpIn(
+        index: Int,
+        bindingDialog: SignDialogBinding,
+        dialog: AlertDialog?
+    ) {
         dialog?.dismiss()
         if (index == DialogConst.SIGN_UP_STATE) {
             accountHelper.signUpWithEmail(

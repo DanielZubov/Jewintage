@@ -1,7 +1,9 @@
 package com.stato.jewintage
 
+import android.Manifest
+import android.annotation.SuppressLint
 import android.app.DatePickerDialog
-import android.graphics.Bitmap
+import android.content.pm.PackageManager
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.net.Uri
@@ -20,30 +22,34 @@ import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
 import com.stato.jewintage.adapters.ImageAdapter
 import com.stato.jewintage.databinding.ActivityEditItemBinding
-import com.stato.jewintage.fragments.FragmentCloseInterface
-import com.stato.jewintage.fragments.ImageListFragment
 import com.stato.jewintage.model.AddNom
 import com.stato.jewintage.model.Category
 import com.stato.jewintage.model.DbManager
-import com.stato.jewintage.util.ImageManager
-import com.stato.jewintage.util.ImagePicker
+import com.stato.jewintage.util.ImagePickerManager
+import com.stato.jewintage.util.PermissionsManager
 import com.stato.jewintage.viewmodel.FirebaseViewModel
-import java.io.ByteArrayOutputStream
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
 
 
-class EditItemAct : AppCompatActivity(), FragmentCloseInterface {
-    var chooseImageFrag: ImageListFragment? = null
+class EditItemAct : AppCompatActivity() {
     lateinit var binding: ActivityEditItemBinding
-    lateinit var imageAdapter: ImageAdapter
+    private val imageAdapter = ImageAdapter(this, null)
     private val dbManager = DbManager()
-    var editImagePos = 0
-    private var imageIndex = 0
     private var isEditState = false
     private var addNom: AddNom? = null
     private val firebaseViewModel: FirebaseViewModel by viewModels()
+    private val permissionsManager = PermissionsManager(this)
+    private var selectedImageUri: Uri? = null
+    @SuppressLint("NotifyDataSetChanged")
+    private val imagePickerManager = ImagePickerManager(this).apply {
+        onImagePicked = { uri ->
+            imageAdapter.imageUri = uri
+            imageAdapter.notifyDataSetChanged()
+            selectedImageUri = uri
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -51,7 +57,7 @@ class EditItemAct : AppCompatActivity(), FragmentCloseInterface {
         setContentView(binding.root)
         init()
         checkEditState()
-
+        binding.vpImages.adapter = imageAdapter
     }
 
     private fun checkEditState() {
@@ -67,19 +73,19 @@ class EditItemAct : AppCompatActivity(), FragmentCloseInterface {
         return intent.getBooleanExtra(MainActivity.EDIT_STATE, false)
     }
 
+    @SuppressLint("NotifyDataSetChanged")
     private fun fillViews(addNom: AddNom) = with(binding) {
         edTICategory.setText(addNom.category)
         edTIDescription.setText(addNom.description)
         edTIPrice.setText(addNom.price)
         edTIDate.setText(addNom.date)
         edTIquantity.setText(addNom.quantity)
-        ImageManager.fillImageArray(addNom, imageAdapter)
+        imageAdapter.imageUri = Uri.parse(addNom.mainImage)
+        imageAdapter.notifyDataSetChanged()
     }
 
     private fun init() {
         firebaseViewModel.loadAllCategories()
-        imageAdapter = ImageAdapter()
-        binding.vpImages.adapter = imageAdapter
     }
 
     override fun onResume() {
@@ -122,6 +128,7 @@ class EditItemAct : AppCompatActivity(), FragmentCloseInterface {
                 }
 
                 if (!isFormValid) {
+                    @Suppress("LABEL_NAME_CLASH")
                     return@setOnClickListener
                 }
 
@@ -204,7 +211,7 @@ class EditItemAct : AppCompatActivity(), FragmentCloseInterface {
         //Прослушивание ошибок в поле ввода "Описание"
         binding.edTIDescription.doOnTextChanged { text, _, _, _ ->
             if (text!!.length > 50) {
-                binding.layoutTIDescription.error = "Превышено максимальное количество символов"
+                binding.layoutTIDescription.error = getString(R.string.warning_description)
             } else if (text.length < 50) {
                 binding.layoutTIDescription.error = null
             }
@@ -212,23 +219,76 @@ class EditItemAct : AppCompatActivity(), FragmentCloseInterface {
 
     }
 
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == PermissionsManager.PERMISSIONS_REQUEST_CODE) {
+            val indexOfCameraPermission = permissions.indexOf(Manifest.permission.CAMERA)
+
+            if (indexOfCameraPermission >= 0 && grantResults[indexOfCameraPermission] == PackageManager.PERMISSION_GRANTED) {
+                // Разрешение на камеру было предоставлено
+                imagePickerManager.chooseImage()
+            } else {
+                // Разрешение на камеру было отклонено
+                showDialogPermissionNeeded()
+            }
+            return
+        }
+    }
+
+
+    private fun showDialogPermissionNeeded() {
+        val builder = AlertDialog.Builder(this)
+        builder.setTitle(getString(R.string.permissions_required))
+        builder.setMessage(getString(R.string.permissions_discription))
+        builder.setPositiveButton(getString(R.string.permissions_grant)) { _, _ ->
+            permissionsManager.checkPermissions()
+        }
+        builder.setNegativeButton(getString(R.string.permissions_cancel)) { _, _ ->
+            // Действия, которые должны быть выполнены, если пользователь отказывается предоставить разрешения
+        }
+        val dialog = builder.create()
+        dialog.show()
+    }
+
 
     fun onClickGetImages(view: View) {
-        if (imageAdapter.mainArray.size == 0) {
-            ImagePicker.getMultiImages(this, 3)
-        } else {
-            openChooseItemFrag(null)
-            chooseImageFrag?.updateAdapterFromEdit(imageAdapter.mainArray)
+        val permissionsGranted = permissionsManager.checkPermissions()
+        if (permissionsGranted) {
+            imagePickerManager.chooseImage()
         }
-
     }
+
 
     fun onClickPublishNum(view: View) {
         if (validateFields()) {
             binding.progressLayout.visibility = View.VISIBLE
             addNom = fillAddNum()
-            uploadImages()
+            uploadImage()
         }
+    }
+    private fun fillAddNum(): AddNom {
+        val adTemp: AddNom
+        binding.apply {
+            val price = edTIPrice.text.toString().toFloat()
+            val quantity = edTIquantity.text.toString().toFloat()
+            val sum = price * quantity
+            adTemp = AddNom(
+                edTICategory.text.toString(),
+                edTIDescription.text.toString(),
+                edTIPrice.text.toString(),
+                sum.toString(),
+                edTIDate.text.toString(),
+                edTIquantity.text.toString(),
+                addNom?.mainImage ?: "empty",
+                addNom?.id ?: dbManager.db.push().key,
+                dbManager.auth.uid
+            )
+        }
+        return adTemp
     }
 
 
@@ -273,110 +333,32 @@ class EditItemAct : AppCompatActivity(), FragmentCloseInterface {
                 binding.progressLayout.visibility = View.GONE
                 if (isDone) finish()
             }
-
         }
-
     }
 
-    private fun fillAddNum(): AddNom {
-        val adTemp: AddNom
-        binding.apply {
-            adTemp = AddNom(
-                edTICategory.text.toString(),
-                edTIDescription.text.toString(),
-                edTIPrice.text.toString(),
-                edTIDate.text.toString(),
-                edTIquantity.text.toString(),
-                addNom?.mainImage ?: "empty",
-                addNom?.image2 ?: "empty",
-                addNom?.image3 ?: "empty",
-                addNom?.id ?: dbManager.db.push().key,
-                dbManager.auth.uid
 
-            )
-        }
-        return adTemp
-    }
-
-    override fun onFragClose(list: ArrayList<Bitmap>) {
-        binding.scrollViewMain.visibility = View.VISIBLE
-        binding.scrollbtnLayout.visibility = View.VISIBLE
-        imageAdapter.update(list)
-        chooseImageFrag = null
-    }
-
-    fun openChooseItemFrag(newList: ArrayList<Uri>?) {
-
-        chooseImageFrag = ImageListFragment(this)
-        if (newList != null) chooseImageFrag?.resizeSelectedImages(newList, true, this)
-        binding.scrollViewMain.visibility = View.GONE
-        binding.scrollbtnLayout.visibility = View.GONE
-        val fm = supportFragmentManager.beginTransaction()
-        fm.replace(R.id.placeHolder, chooseImageFrag!!)
-        fm.commit()
-
-    }
-
-    private fun uploadImages() {
-        if (imageIndex == 3) {
-            dbManager.publishAdd(addNom!!, onPublishFinish())
-            return
-        }
-        val oldUrl = getUrlFromAd()
-        if (imageAdapter.mainArray.size > imageIndex) {
-
-            val byteArray = prepareImageByteArray(imageAdapter.mainArray[imageIndex])
-            if (oldUrl.startsWith("http")) {
-                updateImage(byteArray, oldUrl) {
-                    nextImage(it.result.toString())
+    private fun uploadImage() {
+        if (selectedImageUri != null) {
+            val byteArray = imagePickerManager.uriToCompressedByteArray(this, selectedImageUri!!, 200 * 1024)
+            if (addNom?.mainImage?.startsWith("http") == true) {
+                updateImage(byteArray, addNom?.mainImage!!) {
+                    setImageUriToAddNom(it.result.toString())
                 }
             } else {
-                uploadImage(byteArray) {
-                    nextImage(it.result.toString())
+                uploadImageDb(byteArray) {
+                    setImageUriToAddNom(it.result.toString())
                 }
             }
-
         } else {
-            if (oldUrl.startsWith("http")) {
-                deleteImageByUrl(oldUrl) {
-                    nextImage("empty")
-                }
-            } else {
-                nextImage("empty")
-            }
+            dbManager.publishAdd(addNom!!, onPublishFinish())
         }
     }
-
-
-    private fun nextImage(uri: String) {
-        setImageUriToAddNom(uri)
-        imageIndex++
-        uploadImages()
-    }
-
     private fun setImageUriToAddNom(uri: String) {
-        when (imageIndex) {
-            0 -> addNom = addNom?.copy(mainImage = uri)
-            1 -> addNom = addNom?.copy(image2 = uri)
-            2 -> addNom = addNom?.copy(image3 = uri)
-        }
+        addNom = addNom?.copy(mainImage = uri)
+        dbManager.publishAdd(addNom!!, onPublishFinish())
     }
 
-    private fun getUrlFromAd(): String {
-        return listOf(
-            addNom?.mainImage!!,
-            addNom?.image2!!,
-            addNom?.image3!!
-        )[imageIndex]
-    }
-
-    private fun prepareImageByteArray(bitmap: Bitmap): ByteArray {
-        val outStream = ByteArrayOutputStream()
-        bitmap.compress(Bitmap.CompressFormat.PNG, 20, outStream)
-        return outStream.toByteArray()
-    }
-
-    private fun uploadImage(byteArray: ByteArray, listener: OnCompleteListener<Uri>) {
+    private fun uploadImageDb(byteArray: ByteArray, listener: OnCompleteListener<Uri>) {
         val imStorageReference = dbManager.dbStorage.child(dbManager.auth.uid!!)
             .child("image_${System.currentTimeMillis()}")
         val upTask = imStorageReference.putBytes(byteArray)
@@ -393,11 +375,4 @@ class EditItemAct : AppCompatActivity(), FragmentCloseInterface {
             imStorageReference.downloadUrl
         }.addOnCompleteListener(listener)
     }
-
-    private fun deleteImageByUrl(oldUrl: String, listener: OnCompleteListener<Void>) {
-        dbManager.dbStorage.storage
-            .getReferenceFromUrl(oldUrl)
-            .delete().addOnCompleteListener(listener)
-    }
-
 }

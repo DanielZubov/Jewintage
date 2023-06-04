@@ -1,7 +1,11 @@
 package com.stato.jewintage.fragments
 
+import android.annotation.SuppressLint
 import android.app.DatePickerDialog
 import android.content.Intent
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
+import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -13,6 +17,7 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.RadioButton
 import android.widget.RadioGroup
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.widget.SearchView
@@ -22,9 +27,12 @@ import androidx.drawerlayout.widget.DrawerLayout
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+import androidx.viewpager2.widget.ViewPager2
 import com.google.android.material.textfield.TextInputEditText
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 import com.stato.jewintage.EditItemAct
@@ -32,6 +40,8 @@ import com.stato.jewintage.MainActivity
 import com.stato.jewintage.R
 import com.stato.jewintage.adapters.AddRcAdapter
 import com.stato.jewintage.adapters.CategoryFilterAdapter
+import com.stato.jewintage.adapters.ImageAdapter
+import com.stato.jewintage.adapters.NomGroupAdapter
 import com.stato.jewintage.databinding.FragmentNomenclatureBinding
 import com.stato.jewintage.model.AddNom
 import com.stato.jewintage.model.AddSales
@@ -44,15 +54,27 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
 
-class NomenclatureFragment : Fragment(), AddRcAdapter.SellButtonClickListener {
+class NomenclatureFragment : Fragment(), AddRcAdapter.SellButtonClickListener, NomGroupAdapter.OnCategoryClickListener,
+    AddRcAdapter.OnDescriptionClickListener {
     private var _binding: FragmentNomenclatureBinding? = null
     private lateinit var drawerLayout: DrawerLayout
     private val binding get() = _binding!!
     private var auth = Firebase.auth
     private lateinit var adapter: AddRcAdapter
+    private lateinit var imageAdapter: ImageAdapter
     private lateinit var categoryFilterAdapter: CategoryFilterAdapter
     private val firebaseViewModel: FirebaseViewModel by viewModels()
     private lateinit var swipeRefreshLayout: SwipeRefreshLayout
+    private var selectedCategory: String? = null
+    private var isGetIntentFromMainActCalled = false
+    private val dbManager = DbManager()
+    private lateinit var vpDes: ViewPager2
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        val args: NomenclatureFragmentArgs by navArgs()
+        selectedCategory = args.selectedCategory
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -67,7 +89,7 @@ class NomenclatureFragment : Fragment(), AddRcAdapter.SellButtonClickListener {
 
         swipeRefreshLayout.setOnRefreshListener {
             initViewModel()
-            firebaseViewModel.loadAllAds()
+            firebaseViewModel.loadAllAds(selectedCategory)
             swipeRefreshLayout.isRefreshing = false
         }
 
@@ -80,7 +102,8 @@ class NomenclatureFragment : Fragment(), AddRcAdapter.SellButtonClickListener {
 
         setupRecyclerView()
         initViewModel()
-        firebaseViewModel.loadAllAds()
+        firebaseViewModel.loadAllAds(selectedCategory)
+        Log.d("MyLog", "loadAllAds: $selectedCategory")
         drawerLayout = binding.drawerLayout
         categoryFilterAdapter = CategoryFilterAdapter(firebaseViewModel) { _, _ ->
             // Здесь вы можете обрабатывать выбор категории
@@ -106,26 +129,39 @@ class NomenclatureFragment : Fragment(), AddRcAdapter.SellButtonClickListener {
             binding.drawerFilter.dateToEditText.setText("")
             categoryFilterAdapter.resetCheckedCategories()
         }
-
-
         setupGroupsVisibility()
         setupFilterItemClickListeners()
-
         return binding.root
     }
 
-    private fun applyFilters() {
-        // Закрываем фильтр-меню
-        drawerLayout.closeDrawer(GravityCompat.END)
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        setupRecyclerView()
+        val args = NomenclatureFragmentArgs.fromBundle(requireArguments())
+        // Загрузка и фильтрация данных с использованием selectedDate
+        val selectedCategory = args.selectedCategory
+        firebaseViewModel.filterNomByCategory(selectedCategory)
+        // Обновление RecyclerView при изменении данных
+        firebaseViewModel.liveAdsData.observe(viewLifecycleOwner) { nomList ->
+            adapter.setData(nomList)
+        }
+        firebaseViewModel.loadAllAds(selectedCategory)
 
-        // Получаем значения фильтров
+    }
+
+    override fun onCategoryClick(category: String) {
+        selectedCategory = category
+        firebaseViewModel.loadAllAds(selectedCategory)
+    }
+
+    private fun applyFilters() {
+        drawerLayout.closeDrawer(GravityCompat.END)
         val selectedCategories = categoryFilterAdapter.checkedCategories
         val minPrice = binding.drawerFilter.minPriceEditText.text.toString().toDoubleOrNull()
         val maxPrice = binding.drawerFilter.maxPriceEditText.text.toString().toDoubleOrNull()
         val dateFrom =
             binding.drawerFilter.dateFromEditText.text.toString().takeIf { it.isNotEmpty() }
         val dateTo = binding.drawerFilter.dateToEditText.text.toString().takeIf { it.isNotEmpty() }
-
         firebaseViewModel.filterAds(selectedCategories, minPrice, maxPrice, dateFrom, dateTo)
     }
 
@@ -226,7 +262,7 @@ class NomenclatureFragment : Fragment(), AddRcAdapter.SellButtonClickListener {
 
 
     private fun setupRecyclerView() {
-        adapter = AddRcAdapter(requireActivity() as MainActivity, this)
+        adapter = AddRcAdapter(requireActivity() as MainActivity, this, this)
         binding.rcViewNomenclature.layoutManager = LinearLayoutManager(requireContext())
         binding.rcViewNomenclature.adapter = adapter
         binding.fbAddNom.setOnClickListener {
@@ -235,12 +271,11 @@ class NomenclatureFragment : Fragment(), AddRcAdapter.SellButtonClickListener {
     }
 
     private fun initViewModel() {
-        firebaseViewModel.liveAdsData.observe(viewLifecycleOwner) { newData ->
-            adapter.setData(newData)
+        firebaseViewModel.liveAdsData.observe(viewLifecycleOwner) {
+            adapter.setData(it)
         }
-        firebaseViewModel.loadAllAds()
+        firebaseViewModel.loadAllAds(selectedCategory)
     }
-
 
     override fun onDestroyView() {
         super.onDestroyView()
@@ -266,27 +301,20 @@ class NomenclatureFragment : Fragment(), AddRcAdapter.SellButtonClickListener {
                     dbManager.getCommissionCategory(uid, addNom.category!!) ?: 0f
                 val paymentMethodCommission =
                     dbManager.getCommissionPaymentMethod(uid, paymentMethod) ?: 0f
-                val priceMultiplier: Float
-                if (paymentMethod == "Visa/MasterCard") {
-                    priceMultiplier =
-                        (1 - (categoryCommission / 100)) * (1 - (paymentMethodCommission / 100))
-                    Log.d(
-                        "MyLog",
-                        "Visa/MasterCard: $priceMultiplier, $categoryCommission, $paymentMethodCommission"
-                    )
+                val priceMultiplier: Float = if (paymentMethod == "Visa/MasterCard") {
+                    (1 - (categoryCommission / 100)) * (1 - (paymentMethodCommission / 100))
                 } else {
-                    priceMultiplier = 1 - ((categoryCommission + paymentMethodCommission) / 100)
-                    Log.d(
-                        "MyLog",
-                        "Cash: $priceMultiplier, $categoryCommission, $paymentMethodCommission")
+                    1 - ((categoryCommission + paymentMethodCommission) / 100)
                 }
 
                 dbManager.findSaleByDate(
                     uid,
                     addNom.id!!,
+                    sellPrice,
                     sellDate,
                     paymentMethod,
                     object : DbManager.FindSaleListener {
+                        @SuppressLint("ConstantLocale")
                         val symbols = DecimalFormatSymbols(Locale.getDefault()).apply {
                             decimalSeparator = '.'
                         }
@@ -294,18 +322,16 @@ class NomenclatureFragment : Fragment(), AddRcAdapter.SellButtonClickListener {
                         val newPrice =
                             df.format(sellPrice.toFloat() * quantity.toFloat() * priceMultiplier)
 
-
                         override fun onFinish(saleKey: String?, sale: AddSales?) {
                             if (sale == null || saleKey == null) {
                                 val newSaleKey = dbManager.dbSales.push().key
                                 val newSale = AddSales(
                                     category = addNom.category,
                                     description = addNom.description,
-                                    price = newPrice,
+                                    price = sellPrice,
+                                    sum = newPrice,
                                     date = sellDate,
                                     mainImage = addNom.mainImage,
-                                    image2 = addNom.image2,
-                                    image3 = addNom.image3,
                                     soldQuantity = quantity,
                                     paymentMethod = paymentMethod,
                                     id = newSaleKey,
@@ -316,6 +342,7 @@ class NomenclatureFragment : Fragment(), AddRcAdapter.SellButtonClickListener {
                                 dbManager.saveSale(newSale, object : DbManager.FinishWorkListener {
                                     override fun onFinish(isDone: Boolean) {
                                         if (isDone) {
+                                            Log.d("MyLog", "saleKeyDone: $saleKey")
                                             Toast.makeText(
                                                 requireActivity() as MainActivity,
                                                 "Данные продажи успешно сохранены",
@@ -334,7 +361,7 @@ class NomenclatureFragment : Fragment(), AddRcAdapter.SellButtonClickListener {
                                 val newQuantity =
                                     (sale.soldQuantity!!.toInt() + quantity.toInt()).toString()
                                 val newPrice =
-                                    df.format(sale.price!!.toFloat() + (newPrice.toFloat() * quantity.toFloat()))
+                                    df.format(sale.sum!!.toFloat() + newPrice.toFloat())
                                         .toString()
 
                                 dbManager.updateSaleQuantityAndPrice(
@@ -366,9 +393,11 @@ class NomenclatureFragment : Fragment(), AddRcAdapter.SellButtonClickListener {
 
                 // Обновление количества товара после продажи
                 val newQuantity = (addNom.quantity!!.toInt() - quantity.toInt()).toString()
+                val newSum = (newQuantity.toInt() * addNom.price!!.toInt()).toString()
                 dbManager.updateQuantity(
                     addNom,
                     newQuantity,
+                    newSum,
                     object : DbManager.FinishWorkListener {
                         override fun onFinish(isDone: Boolean) {
                             if (isDone) {
@@ -489,10 +518,57 @@ class NomenclatureFragment : Fragment(), AddRcAdapter.SellButtonClickListener {
             }
         }
     }
+    private fun getIntentFromMainAct(addNom: AddNom) {
+        if (isGetIntentFromMainActCalled) {
+            return
+        }
+        isGetIntentFromMainActCalled = true
+        val uid = FirebaseAuth.getInstance().currentUser?.uid
+        if (uid != null) {
+            dbManager.getImagesFromDatabase(uid, addNom.id!!) {
+                activity?.runOnUiThread {
+                    val imageUri = Uri.parse(addNom.mainImage)
+                    imageAdapter = ImageAdapter(requireContext(), imageUri)
+                    vpDes.adapter = imageAdapter
+                }
+            }
+        }
+    }
 
 
     override fun onSellButtonClick(addNom: AddNom) {
         showSellDialog(addNom)
+    }
+
+    override fun onDescriptionClick(addNom: AddNom) {
+        isGetIntentFromMainActCalled = false
+        val inflater = layoutInflater
+        val dialogView = inflater.inflate(R.layout.dialog_description_cost, null)
+
+        val tvSum = dialogView.findViewById<TextView>(R.id.tvSum)
+        val tvCat = dialogView.findViewById<TextView>(R.id.tvDesCat)
+        val tvDesc = dialogView.findViewById<TextView>(R.id.tvDesDesc)
+        val tvDate = dialogView.findViewById<TextView>(R.id.tvDesDate)
+        val tvQuantity = dialogView.findViewById<TextView>(R.id.tvDesQuantity)
+
+        // Заполните поля значениями текущего объекта продажи
+        tvCat.text = addNom.category
+        tvDesc.text = addNom.description
+        "${addNom.quantity} шт.".also { tvQuantity.text = it }
+        "₾ ${addNom.price}".also { tvSum.text = it }
+        tvDate.text = addNom.date
+
+        val builder = AlertDialog.Builder(requireContext())
+            .setView(dialogView)
+            .setCancelable(true)
+
+        val alertDialog = builder.create()
+
+        vpDes = dialogView.findViewById(R.id.vpDes)
+        getIntentFromMainAct(addNom)
+        alertDialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+
+        alertDialog.show()
     }
 
 }

@@ -54,7 +54,6 @@ class AccountHelper(act: MainActivity) {
     fun signInWithEmail(email:String, password:String){
         if (email.isNotEmpty() && password.isNotEmpty()){
             activity.auth.signInWithEmailAndPassword(email, password).addOnCompleteListener { task ->
-
                 if (task.isSuccessful) {
                     activity.uiUpdate(task.result.user)
                 } else {
@@ -67,8 +66,6 @@ class AccountHelper(act: MainActivity) {
                         }
                     }
                 }
-
-
             }
         }
     }

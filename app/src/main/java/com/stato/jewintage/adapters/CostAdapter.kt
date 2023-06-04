@@ -92,10 +92,9 @@ class CostAdapter(
 
         fun bind(position: Int) = with(binding) {
             val cost = costList[position]
-            val newPrice = (cost.price!!.toInt() * cost.quantity!!.toInt()).toString()
             tvSaleItemCat.text = cost.category
             tvSaleItemDescription.text = cost.date
-            "₾ $newPrice".also { tvSaleItemSum.text = it }
+            "₾ ${cost.sum}".also { tvSaleItemSum.text = it }
             "${cost.quantity} шт.".also { tvSaleItemQuant.text = it }
             val mainImage = cost.mainImage
             if (!mainImage.isNullOrEmpty() && mainImage != "empty") {
@@ -155,8 +154,6 @@ class CostAdapter(
     interface OnDescriptionClickListener {
         fun onDescriptionClick(cost: AddCost)
     }
-    interface OnEditClickListener {
-        fun onEditClick(cost: AddCost)
-    }
+
 
 }

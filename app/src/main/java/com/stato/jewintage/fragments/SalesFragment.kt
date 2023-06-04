@@ -2,8 +2,10 @@ package com.stato.jewintage.fragments
 
 import android.annotation.SuppressLint
 import android.app.DatePickerDialog
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
+import android.net.Uri
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuInflater
@@ -36,7 +38,6 @@ import com.stato.jewintage.adapters.SalesGroupAdapter
 import com.stato.jewintage.databinding.FragmentSalesBinding
 import com.stato.jewintage.model.AddSales
 import com.stato.jewintage.model.DbManager
-import com.stato.jewintage.util.ImageManager
 import com.stato.jewintage.viewmodel.FirebaseViewModel
 import java.text.DecimalFormat
 import java.text.DecimalFormatSymbols
@@ -123,8 +124,6 @@ class SalesFragment : Fragment(), SalesAdapter.OnEditClickListener,
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
-        // Настройка RecyclerView и адаптера
         setupRecyclerView()
         val args = SalesFragmentArgs.fromBundle(requireArguments())
         // Загрузка и фильтрация данных с использованием selectedDate
@@ -143,7 +142,7 @@ class SalesFragment : Fragment(), SalesAdapter.OnEditClickListener,
         firebaseViewModel.loadAllSales(selectedDate)
     }
     private fun setupRecyclerView(){
-        salesAdapter = SalesAdapter(act = requireActivity() as MainActivity, this, this)
+        salesAdapter = SalesAdapter(requireActivity() as MainActivity, this, this)
 
         binding.rcViewSales.layoutManager = LinearLayoutManager(context)
         binding.rcViewSales.adapter = salesAdapter
@@ -249,38 +248,21 @@ class SalesFragment : Fragment(), SalesAdapter.OnEditClickListener,
             return
         }
         isGetIntentFromMainActCalled = true
-        Log.d("getIntentFromMainAct", "Fetching images for item id: ${sale.id}")
         val uid = FirebaseAuth.getInstance().currentUser?.uid
         if (uid != null) {
-            dbManager.getImagesFromDatabase(uid, sale.id!!) { imageUrls ->
+            dbManager.getImagesFromDatabase(uid, sale.id!!) {
                 activity?.runOnUiThread {
-                    Log.d("getIntentFromMainAct", "Received image URLs: $imageUrls")
-                    updateVpAdapter(imageUrls)
+                    val imageUri = Uri.parse(sale.mainImage)
+                    adapter = ImageAdapter(requireContext(), imageUri)
+                    vpDes.adapter = adapter
                 }
             }
         }
     }
-
-
-
-    private fun updateVpAdapter(imageUrls: List<String>) {
-        if (vpDes.adapter != adapter) {
-            Log.d("updateVpAdapter", "Setting adapter for view pager")
-            vpDes.adapter = adapter
-        }
-        Log.d("updateVpAdapter", "Filling adapter with image URLs: $imageUrls")
-        ImageManager.fillImageSellArray(imageUrls, adapter)
-    }
-
-
-
-
     private fun updateUi() {
         firebaseViewModel.liveSalesData.observe(viewLifecycleOwner) {
             salesAdapter.setData(it)
         }
-
-
         firebaseViewModel.loadAllSales(selectedDate)
     }
 
@@ -315,8 +297,9 @@ class SalesFragment : Fragment(), SalesAdapter.OnEditClickListener,
         val builder = AlertDialog.Builder(requireContext())
             .setView(dialogView)
             .setCancelable(true)
-
-        val alertDialog = builder.show()
+            .create()
+        builder.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+        builder.show()
 
         // Слушатель клика на поле ввода даты
         tvSellDate.setOnClickListener {
@@ -388,8 +371,7 @@ class SalesFragment : Fragment(), SalesAdapter.OnEditClickListener,
                         }
                     }
                 })
-
-            alertDialog.dismiss()
+            builder.dismiss()
         }
     }
 
@@ -400,6 +382,7 @@ class SalesFragment : Fragment(), SalesAdapter.OnEditClickListener,
         val dialogView = inflater.inflate(R.layout.dialog_description_sale, null)
 
         val tvSum = dialogView.findViewById<TextView>(R.id.tvSum)
+        val tvPrice = dialogView.findViewById<TextView>(R.id.tvDesPrice)
         val tvCat = dialogView.findViewById<TextView>(R.id.tvDesCat)
         val tvDesc = dialogView.findViewById<TextView>(R.id.tvDesDesc)
         val tvDate = dialogView.findViewById<TextView>(R.id.tvDesDate)
@@ -410,32 +393,15 @@ class SalesFragment : Fragment(), SalesAdapter.OnEditClickListener,
             decimalSeparator = '.'
         }
         val df = DecimalFormat("#.##", symbols)
-        val percent = when {
-            sale.category == "Тканевые изделия" && (sale.paymentMethod == "Наличка" || sale.paymentMethod == "Cash") -> {
-                df.format(sale.price!!.toFloat() / 0.8)
-            }
 
-            sale.category == "Тканевые изделия" && sale.paymentMethod == "Visa/MasterCard" -> {
-                df.format(sale.price!!.toFloat() / 0.7808)
-            }
-
-            (sale.paymentMethod == "Наличка" || sale.paymentMethod == "Cash") -> {
-                df.format(sale.price!!.toFloat() / 0.9)
-            }
-
-            sale.paymentMethod == "Visa/MasterCard" -> {
-                df.format(sale.price!!.toFloat() / 0.8784)
-            }
-
-            else -> "0"
-        }
-        val newPercent = df.format(percent.toFloat() - sale.price!!.toFloat())
+        val newPercent = df.format((sale.price!!.toFloat() * sale.soldQuantity!!.toFloat()) - sale.sum!!.toFloat())
 
         // Заполните поля значениями текущего объекта продажи
         tvCat.text = sale.category
+        tvPrice.text = sale.price
         tvDesc.text = sale.description
         "${sale.soldQuantity} шт.".also { tvQuantity.text = it }
-        "₾ ${sale.price}".also { tvSum.text = it }
+        "₾ ${sale.sum}".also { tvSum.text = it }
         tvDate.text = sale.date
         tvPay.text = sale.paymentMethod
         tvPercent.text = "₾ $newPercent"
@@ -447,10 +413,8 @@ class SalesFragment : Fragment(), SalesAdapter.OnEditClickListener,
         val alertDialog = builder.create()
 
         vpDes = dialogView.findViewById(R.id.vpDesSale)
-        adapter = ImageAdapter()
-        vpDes.adapter = adapter
         getIntentFromMainAct(sale)
-
+        alertDialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
         alertDialog.show()
     }
 

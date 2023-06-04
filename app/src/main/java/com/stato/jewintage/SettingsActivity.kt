@@ -25,7 +25,7 @@ class SettingsActivity : AppCompatActivity(), CategoryAdapter.OnCommissionChange
         super.onCreate(savedInstanceState)
         setContentView(R.layout.settings_activity)
 
-        adapter = CategoryAdapter(listOf(), this, viewModel) // Initialize adapter here
+        adapter = CategoryAdapter(listOf(), this, viewModel)
 
         val recyclerView = findViewById<RecyclerView>(R.id.recyclerView)
         recyclerView.adapter = adapter
@@ -76,7 +76,7 @@ class SettingsActivity : AppCompatActivity(), CategoryAdapter.OnCommissionChange
             }
 
             "theme" -> {
-                val theme = sharedPreferences.getString(key, "")
+                val theme = sharedPreferences.getString(key, getString(R.string.default_theme))
                 if (theme != null) {
                     setAppTheme(theme)
                     recreate()

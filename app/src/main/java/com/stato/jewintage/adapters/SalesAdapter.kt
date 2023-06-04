@@ -95,9 +95,8 @@ class SalesAdapter(
             tvPaymentMethod.text = sale.paymentMethod
             tvSaleItemCat.text = sale.category
             tvSaleItemDescription.text = sale.date
-            "₾ ${sale.price}".also { tvSaleItemSum.text = it }
+            "₾ ${sale.sum}".also { tvSaleItemSum.text = it }
             "${sale.soldQuantity} шт.".also { tvSaleItemQuant.text = it }
-            // Добавлена проверка перед вызовом Picasso.load()
             val mainImage = sale.mainImage
             if (!mainImage.isNullOrEmpty() && mainImage != "empty") {
                 Picasso.get().load(mainImage).into(ivSaleItem)

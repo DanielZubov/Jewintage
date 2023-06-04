@@ -8,11 +8,9 @@ import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.squareup.picasso.Picasso
-import com.stato.jewintage.DescriptionActivity
 import com.stato.jewintage.EditItemAct
 import com.stato.jewintage.MainActivity
 import com.stato.jewintage.R
-import com.stato.jewintage.constance.MainConst
 import com.stato.jewintage.databinding.AddNomListItemBinding
 import com.stato.jewintage.model.AddNom
 import java.text.SimpleDateFormat
@@ -21,7 +19,8 @@ import java.util.Locale
 
 class AddRcAdapter(
     private val act: MainActivity,
-    private val sellButtonClickListener: SellButtonClickListener
+    private val sellButtonClickListener: SellButtonClickListener,
+    private val descriptionClickListener: OnDescriptionClickListener
 ) : RecyclerView.Adapter<AddRcAdapter.AdHolder>() {
     private val fullAddArray: ArrayList<AddNom> = ArrayList()
 
@@ -64,7 +63,7 @@ class AddRcAdapter(
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): AdHolder {
         val binding =
             AddNomListItemBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-        return AdHolder(binding, act, sellButtonClickListener, addArray)
+        return AdHolder(binding, act, sellButtonClickListener, descriptionClickListener, addArray)
     }
 
 
@@ -95,19 +94,20 @@ class AddRcAdapter(
         private val binding: AddNomListItemBinding,
         private val act: MainActivity,
         private val sellButtonClickListener: SellButtonClickListener,
+        private val descriptionClickListener: OnDescriptionClickListener,
         private val addArray: ArrayList<AddNom>
     ) : RecyclerView.ViewHolder(binding.root) {
 
         fun setData(position: Int) = with(binding) {
             val addNom = addArray[position]
-            if (addNom.quantity == "0") {
-                cvItem.visibility = View.GONE
-            } else {
-                cvItem.visibility = View.VISIBLE
-            }
+//            if (addNom.quantity == "0") {
+//                cvItem.visibility = View.GONE
+//            } else {
+//                cvItem.visibility = View.VISIBLE
+//            }
             tvNumItemCat.text = addNom.category
             tvNumItemDescription.text = addNom.description
-            "₾ ${addNom.price}".also { tvNumItemPrice.text = it }
+            "₾ ${addNom.sum}".also { tvNumItemPrice.text = it }
             "${addNom.quantity} шт.".also { tvNumItemQuant.text = it }
 
             val mainImage = addNom.mainImage
@@ -131,9 +131,7 @@ class AddRcAdapter(
 
         private fun mainOnClick(addNom: AddNom) = with(binding) {
             cvItem.setOnClickListener {
-                val i = Intent(binding.root.context, DescriptionActivity::class.java)
-                i.putExtra(MainConst.AD, addNom)
-                binding.root.context.startActivity(i)
+                descriptionClickListener.onDescriptionClick(addNom)
             }
             ibEditItem.setOnClickListener(onClickEdit(addNom))
             ibDeleteItem.setOnClickListener {
@@ -169,6 +167,9 @@ class AddRcAdapter(
         }
 
 
+    }
+    interface OnDescriptionClickListener {
+        fun onDescriptionClick(addNom: AddNom)
     }
 
     interface DeleteItemListener {

@@ -26,10 +26,75 @@ class FirebaseViewModel : ViewModel() {
     private var allSalesData = ArrayList<AddSales>()
     private var allCostData = ArrayList<AddCost>()
     private val _salesGroupList = MutableLiveData<List<String>>()
+    private val _costsGroupList = MutableLiveData<List<String>>()
+    private val _nomGroupList = MutableLiveData<List<String>>()
     var onCategoryDeletedListener: OnCategoryDeletedListener? = null
     val salesGroupList: LiveData<List<String>> get() = _salesGroupList
+    val nomGroupList: LiveData<List<String>> get() = _nomGroupList
+    val costsGroupList: LiveData<List<String>> get() = _costsGroupList
 
 
+    fun loadAllAds(category: String?) {
+        if (auth.currentUser != null) {
+            dbManager.getAllAds(object : DbManager.ReadNomDataCallback {
+                override fun readData(list: ArrayList<AddNom>) {
+                    allAdsData = list
+                    filterNomByCategory(category)
+                }
+            })
+        } else {
+            liveAdsData.value = ArrayList()
+        }
+    }
+    fun loadAllSales(date: String?) {
+        if (auth.currentUser != null) {
+            dbManager.getAllSales(object : DbManager.ReadSalesDataCallback {
+                override fun readData(list: ArrayList<AddSales>) {
+                    allSalesData = list
+                    filterSalesByDate(date)
+                }
+            })
+        } else {
+            liveSalesData.value = ArrayList()
+        }
+    }
+    fun loadAllCost(date: String?) {
+        if (auth.currentUser != null) {
+            dbManager.getAllCosts(object : DbManager.ReadCostDataCallback {
+                override fun readData(list: ArrayList<AddCost>) {
+                    allCostData = list
+                    filterCostsByDate(date)
+                }
+            })
+        } else {
+            liveCostData.value = ArrayList()
+        }
+    }
+
+    fun loadNomGroupCategory() {
+        if (auth.currentUser != null) {
+            dbManager.getAllAds(object : DbManager.ReadNomDataCallback {
+                override fun readData(list: ArrayList<AddNom>) {
+                    val category = list.mapNotNull { it.category }.toMutableList()
+                    category.add(0, "Все")
+                    val sortedDistinctDates = category.distinct().sorted()
+                    _nomGroupList.value = sortedDistinctDates
+                }
+            })
+        } else {
+            _nomGroupList.value = emptyList()
+        }
+    }
+
+    fun filterNomByCategory(category: String?) {
+        val filteredList = if (category == "Все" || category == null) {
+            allAdsData
+        } else {
+            allAdsData.filter { nom -> nom.category == category }
+        }
+
+        liveAdsData.value = ArrayList(filteredList)
+    }
     fun updateCommissionCard(commission: Float) {
         val uid = auth.currentUser?.uid ?: return
         dbManager.updateCommissionCard(uid, commission)
@@ -137,34 +202,20 @@ class FirebaseViewModel : ViewModel() {
 
         liveCostData.value = ArrayList(filteredList)
     }
-
-
-    fun loadAllAds() {
+    fun loadCostsGroupDates() {
         if (auth.currentUser != null) {
-            dbManager.getAllAds(object : DbManager.ReadNomDataCallback {
-                override fun readData(list: ArrayList<AddNom>) {
-                    allAdsData = list
-                    liveAdsData.value = list
+            dbManager.getAllCosts(object : DbManager.ReadCostDataCallback {
+                override fun readData(list: ArrayList<AddCost>) {
+                    val dates = list.mapNotNull { it.date }.toMutableList()
+                    dates.add(0, "Все")
+                    val sortedDistinctDates = dates.distinct().sorted()
+                    _costsGroupList.value = sortedDistinctDates
                 }
             })
         } else {
-            liveAdsData.value = ArrayList()
+            _costsGroupList.value = emptyList()
         }
     }
-
-    fun loadAllSales(date: String?) {
-        if (auth.currentUser != null) {
-            dbManager.getAllSales(object : DbManager.ReadSalesDataCallback {
-                override fun readData(list: ArrayList<AddSales>) {
-                    allSalesData = list
-                    filterSalesByDate(date) // переместили эту строку сюда
-                }
-            })
-        } else {
-            liveSalesData.value = ArrayList()
-        }
-    }
-
     fun loadSalesGroupDates() {
         if (auth.currentUser != null) {
             dbManager.getAllSales(object : DbManager.ReadSalesDataCallback {
@@ -180,9 +231,6 @@ class FirebaseViewModel : ViewModel() {
         }
     }
 
-
-
-
     fun filterSalesByDate(date: String?) {
         val filteredList = if (date == "Все" || date == null) {
             allSalesData
@@ -193,37 +241,30 @@ class FirebaseViewModel : ViewModel() {
         liveSalesData.value = ArrayList(filteredList)
     }
 
-    fun loadAllCost() {
-        if (auth.currentUser != null) {
-            dbManager.getAllCosts(object : DbManager.ReadCostDataCallback {
-                override fun readData(list: ArrayList<AddCost>) {
-                    allCostData = list
-                    liveCostData.value = list
-                }
-            })
+    fun filterCostsByDate(date: String?) {
+        val filteredList = if (date == "Все" || date == null) {
+            allCostData
         } else {
-            liveCostData.value = ArrayList()
+            allCostData.filter { cost -> cost.date == date }
         }
+
+        liveCostData.value = ArrayList(filteredList)
     }
-
-
-
-
     fun deleteItem(addNom: AddNom){
         dbManager.deleteAd(addNom, object : DbManager.FinishWorkListener{
             override fun onFinish(isDone: Boolean) {
-                val updatedList = liveAdsData.value
-                updatedList?.remove(addNom)
-                liveAdsData.postValue(updatedList!!)
+                val updatedList = liveAdsData.value ?: arrayListOf()
+                updatedList.remove(addNom)
+                liveAdsData.postValue(updatedList)
             }
         })
     }
     fun deleteCostItem(cost: AddCost){
         dbManager.deleteCostAd(cost, object : DbManager.FinishWorkListener{
             override fun onFinish(isDone: Boolean) {
-                val updatedList = liveCostData.value
-                updatedList?.remove(cost)
-                liveCostData.postValue(updatedList!!)
+                val updatedList = liveCostData.value ?: arrayListOf()
+                updatedList.remove(cost)
+                liveCostData.postValue(updatedList)
             }
         })
     }

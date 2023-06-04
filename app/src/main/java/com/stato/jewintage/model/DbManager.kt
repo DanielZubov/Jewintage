@@ -12,6 +12,8 @@ import com.google.firebase.storage.ktx.storage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
+import java.text.SimpleDateFormat
+import java.util.Locale
 
 class DbManager {
 
@@ -20,7 +22,7 @@ class DbManager {
     val dbCosts = Firebase.database.getReference(COST_NODE)
     val dbStorage = Firebase.storage.getReference(NOM_NODE)
     val dbCategories = Firebase.database.getReference(CATEGORY_NODE)
-    val dbCommissions = Firebase.database.getReference(COMMISSIONS_NODE)
+    private val dbCommissions = Firebase.database.getReference(COMMISSIONS_NODE)
     val auth = Firebase.auth
 
     // Функция для получения комиссии категории
@@ -115,18 +117,25 @@ class DbManager {
                 }
     }
 
-    fun updateQuantity(addNom: AddNom, newQuantity: String, listener: FinishWorkListener) {
+    fun updateQuantity(
+        addNom: AddNom,
+        newQuantity: String,
+        newSum: String,
+        listener: FinishWorkListener
+    ) {
         if (addNom.id == null || addNom.uid == null) return
         db.child(addNom.uid).child(addNom.id).child(AD_NODE).child("quantity")
             .setValue(newQuantity).addOnCompleteListener {
+                if (it.isSuccessful) listener.onFinish(true)
+            }
+        db.child(addNom.uid).child(addNom.id).child(AD_NODE).child("sum")
+            .setValue(newSum).addOnCompleteListener {
                 if (it.isSuccessful) listener.onFinish(true)
             }
     }
 
     fun calculateTotalSalesByDate(date: String, callback: (Double) -> Unit) {
         val uid = auth.uid ?: return
-
-
         val salesReference = dbSales.child(uid)
         salesReference.addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
@@ -134,7 +143,7 @@ class DbManager {
                 for (snapshot in dataSnapshot.children) {
                     val sale = snapshot.child(AD_NODE).getValue(AddSales::class.java)
                     if (date == "Все" || sale?.date == date) {
-                        totalSum += sale?.price?.toDoubleOrNull() ?: 0.0
+                        totalSum += sale?.sum?.toDoubleOrNull() ?: 0.0
                     }
                 }
                 callback(totalSum)
@@ -145,6 +154,81 @@ class DbManager {
             }
         })
     }
+
+    fun calculateTotalCostsByDate(date: String, callback: (Double) -> Unit) {
+        val uid = auth.uid ?: return
+        val costsReference = dbCosts.child(uid)
+        costsReference.addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(dataSnapshot: DataSnapshot) {
+                var totalSum = 0.0
+                for (snapshot in dataSnapshot.children) {
+                    val cost = snapshot.child(AD_NODE).getValue(AddCost::class.java)
+                    if (date == "Все" || cost?.date == date) {
+                        totalSum += cost?.sum?.toDoubleOrNull() ?: 0.0
+                    }
+                }
+                callback(totalSum)
+            }
+
+            override fun onCancelled(databaseError: DatabaseError) {
+                Log.w("DbManager", "Failed to read value.", databaseError.toException())
+            }
+        })
+    }
+
+    fun calculateTotalSalesByCategory(category: String, callback: (Int) -> Unit) {
+        val uid = auth.uid ?: return
+        val nomReference = db.child(uid)
+        nomReference.addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(dataSnapshot: DataSnapshot) {
+                var totalSum = 0
+                for (snapshot in dataSnapshot.children) {
+                    val nom = snapshot.child(AD_NODE).getValue(AddNom::class.java)
+                    if (category == "Все" || nom?.category == category) {
+                        totalSum += nom?.quantity?.toIntOrNull() ?: 0
+                    }
+                }
+                callback(totalSum)
+            }
+
+            override fun onCancelled(databaseError: DatabaseError) {
+                Log.w("DbManager", "Failed to read value.", databaseError.toException())
+            }
+        })
+    }
+
+    fun calculateTotalPriceByDateRange(startDate: String, endDate: String, callback: (Double) -> Unit) {
+        val uid = auth.uid ?: return
+        val salesReference = dbSales.child(uid)
+        salesReference.addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(dataSnapshot: DataSnapshot) {
+                var totalPrice = 0.0
+                for (snapshot in dataSnapshot.children) {
+                    val sale = snapshot.child(AD_NODE).getValue(AddSales::class.java)
+                    val saleDate = sale?.date ?: ""
+                    if (isDateInRange(saleDate, startDate, endDate)) {
+                        val price = sale?.sum?.toDoubleOrNull() ?: 0.0
+                        totalPrice += price
+                    }
+                }
+                callback(totalPrice)
+            }
+
+            override fun onCancelled(databaseError: DatabaseError) {
+                Log.w("DbManager", "Failed to read value.", databaseError.toException())
+            }
+        })
+    }
+
+    fun isDateInRange(date: String, startDate: String, endDate: String): Boolean {
+        val sdf = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault())
+        val saleDate = sdf.parse(date)
+        val start = sdf.parse(startDate)
+        val end = sdf.parse(endDate)
+        return saleDate != null && saleDate >= start && saleDate <= end
+    }
+
+
 
 
     fun updateSale(
@@ -173,26 +257,7 @@ class DbManager {
             }
         }
     }
-    fun updateCost(cost: AddCost, updatedCostPrice: String, updatedCostDate: String, updatedQuantity: String, updatedCostCategory: String,updatedCostDes: String, listener: FinishWorkListener) {
 
-        val saleRef = dbCosts.child(cost.id!!)
-
-        val updates = hashMapOf<String, Any>(
-            "price" to updatedCostPrice,
-            "date" to updatedCostDate,
-            "quantity" to updatedQuantity,
-            "category" to updatedCostCategory,
-            "description" to updatedCostDes
-        )
-
-        saleRef.updateChildren(updates).addOnCompleteListener { task ->
-            if (task.isSuccessful) {
-                listener.onFinish(true)
-            } else {
-                listener.onFinish(false)
-            }
-        }
-    }
 
     fun publishAdd(addNom: AddNom, finishWorkListener: FinishWorkListener) {
         if (auth.uid != null)
@@ -295,6 +360,7 @@ class DbManager {
     fun findSaleByDate(
         uid: String,
         itemId: String,
+        sellPrice: String,
         saleDate: String,
         paymentMethod: String,
         listener: FindSaleListener
@@ -304,10 +370,17 @@ class DbManager {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
                 for (snapshot in dataSnapshot.children) {
                     val sale = snapshot.child("Item").getValue(AddSales::class.java)
-                    if (sale?.idItem == itemId && sale.date == saleDate && sale.paymentMethod == paymentMethod) {
+                    if (sale?.idItem == itemId && sale.price == sellPrice && sale.date == saleDate && sale.paymentMethod == paymentMethod ) {
                         listener.onFinish(snapshot.key, sale)
                         return
                     }
+                    Log.d(
+                        "MyLog", "itemId: $itemId" +
+                                "        saleDate: $saleDate" +
+                                "        paymentMethod: $paymentMethod" +
+                                "        key: ${snapshot.key}" +
+                                "        sellPrice: $sellPrice"
+                    )
                 }
 
                 listener.onFinish(null, null)
@@ -322,6 +395,32 @@ class DbManager {
                 )
             }
         })
+    }
+
+    fun updateSaleQuantityAndPrice(
+        uid: String,
+        saleKey: String,
+        newQuantity: String,
+        newPrice: String,
+        finishWorkListener: FinishWorkListener
+    ) {
+        val saleReference = dbSales.child(uid).child(saleKey).child("Item")
+
+        saleReference.updateChildren(
+            mapOf(
+                "soldQuantity" to newQuantity,
+                "sum" to newPrice
+            )
+        ).addOnCompleteListener { task ->
+            if (task.isSuccessful) {
+                finishWorkListener.onFinish(true)
+                Log.d("MyLog", "saleKeyDone: $saleKey")
+            } else {
+                finishWorkListener.onFinish(false)
+                Log.d("MyLog", "saleKey: $saleKey")
+            }
+        }
+
     }
 
     fun getImagesFromDatabase(uid: String, saleId: String, callback: (List<String>) -> Unit) {
@@ -350,30 +449,6 @@ class DbManager {
                 )
             }
         })
-    }
-
-
-    fun updateSaleQuantityAndPrice(
-        uid: String,
-        saleKey: String,
-        newQuantity: String,
-        newPrice: String,
-        finishWorkListener: FinishWorkListener
-    ) {
-        val saleReference = dbSales.child(uid).child(saleKey).child("Item")
-
-        saleReference.updateChildren(
-            mapOf(
-                "soldQuantity" to newQuantity,
-                "price" to newPrice
-            )
-        ).addOnCompleteListener { task ->
-            if (task.isSuccessful) {
-                finishWorkListener.onFinish(true)
-            } else {
-                finishWorkListener.onFinish(false)
-            }
-        }
     }
 
     interface FindSaleListener {

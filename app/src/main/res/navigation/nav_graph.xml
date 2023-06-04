@@ -3,22 +3,46 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/nav_graph"
-    app:startDestination="@id/nomenclatureFragment">
+    app:startDestination="@id/nomGroupFragment">
+
     <fragment
         android:id="@+id/nomenclatureFragment"
         android:name="com.stato.jewintage.fragments.NomenclatureFragment"
         android:label="@string/nomenclatureFragment"
-        tools:layout="@layout/fragment_nomenclature" />
+        tools:layout="@layout/fragment_nomenclature">
+        <argument
+            android:name="selectedCategory"
+            app:argType="string" />
+        <action
+            android:id="@+id/action_nomenclatureFragment_to_nomGroupFragment"
+            app:destination="@id/nomGroupFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/nomGroupFragment"
+        android:name="com.stato.jewintage.fragments.NomGroupFragment"
+        android:label="@string/nomenclatureFragment"
+        tools:layout="@layout/fragment_nom_group">
+        <action
+            android:id="@+id/action_nomGroupFragment_to_nomenclatureFragment"
+            app:destination="@id/nomenclatureFragment" />
+    </fragment>
     <fragment
         android:id="@+id/costFragment"
         android:name="com.stato.jewintage.fragments.CostFragment"
         android:label="@string/costFragment"
-        tools:layout="@layout/fragment_cost" />
+        tools:layout="@layout/fragment_cost" >
+        <argument
+            android:name="selectedDate"
+            app:argType="string" />
+        <action
+            android:id="@+id/action_costFragment_to_costGroupFragment"
+            app:destination="@id/costGroupFragment" />
+    </fragment>
     <fragment
         android:id="@+id/salesFragment"
         android:name="com.stato.jewintage.fragments.SalesFragment"
         android:label="@string/salesFragment"
-        tools:layout="@layout/fragment_sales" >
+        tools:layout="@layout/fragment_sales">
         <argument
             android:name="selectedDate"
             app:argType="string" />
@@ -30,9 +54,18 @@
         android:id="@+id/salesGroupFragment"
         android:name="com.stato.jewintage.fragments.SalesGroupFragment"
         android:label="@string/salesFragment"
-        tools:layout="@layout/fragment_sales_group" >
+        tools:layout="@layout/fragment_sales_group">
         <action
             android:id="@+id/action_salesGroupFragment_to_salesFragment"
             app:destination="@id/salesFragment" />
     </fragment>
+    <fragment
+        android:id="@+id/costGroupFragment"
+        android:name="com.stato.jewintage.fragments.CostGroupFragment"
+        android:label="@string/costFragment" >
+        <action
+            android:id="@+id/action_costGroupFragment_to_costFragment"
+            app:destination="@id/costFragment" />
+    </fragment>
+
 </navigation>

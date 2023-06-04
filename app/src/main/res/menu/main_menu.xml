@@ -2,9 +2,9 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
-        android:id="@+id/nomenclatureFragment"
+        android:id="@+id/nomGroupFragment"
         android:title="@string/nomenclatureFragment"
-        android:icon="@drawable/ic_nomenclature"
+        android:icon="@drawable/ic_nom"
         android:orderInCategory="2"
         />
     <item
@@ -14,9 +14,9 @@
         android:orderInCategory="1"
         />
     <item
-        android:id="@+id/costFragment"
+        android:id="@+id/costGroupFragment"
         android:title="@string/costFragment"
-        android:icon="@drawable/ic_cost"
+        android:icon="@drawable/ic_costs"
         android:orderInCategory="3"
         />
 

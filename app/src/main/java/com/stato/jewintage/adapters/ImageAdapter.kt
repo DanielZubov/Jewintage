@@ -1,51 +1,35 @@
 package com.stato.jewintage.adapters
 
-import android.graphics.Bitmap
+import android.content.Context
+import android.net.Uri
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
-import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
 import com.stato.jewintage.R
 
-class ImageAdapter : RecyclerView.Adapter<ImageAdapter.ImageHolder>() {
-    val mainArray = ArrayList<Bitmap>()
+class ImageAdapter(private val context: Context, var imageUri: Uri?): RecyclerView.Adapter<ImageAdapter.ImageViewHolder>() {
 
+    class ImageViewHolder(view: View) : RecyclerView.ViewHolder(view) {
+        val imageView: ImageView = view.findViewById(R.id.imItem)
+    }
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ImageHolder {
-        val view = LayoutInflater.from(parent.context).inflate(R.layout.image_adapter_item, parent, false)
-        return ImageHolder(view)
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ImageViewHolder {
+        val view = LayoutInflater.from(parent.context)
+            .inflate(R.layout.image_adapter_item, parent, false)
+        return ImageViewHolder(view)
+    }
+
+    override fun onBindViewHolder(holder: ImageViewHolder, position: Int) {
+        Glide.with(context)
+            .load(imageUri)
+            .centerCrop()
+            .into(holder.imageView)
     }
 
     override fun getItemCount(): Int {
-        return mainArray.size
+        return if (imageUri != null) 1 else 0
     }
-
-    override fun onBindViewHolder(holder: ImageHolder, position: Int) {
-        holder.setData(mainArray[position])
-    }
-
-    class ImageHolder(itemView : View) : RecyclerView.ViewHolder(itemView) {
-
-        lateinit var imItem : ImageView
-        fun setData(bitmap: Bitmap) {
-            imItem = itemView.findViewById(R.id.imItem)
-            imItem.setImageBitmap(bitmap)
-            imItem.scaleType = ImageView.ScaleType.CENTER_CROP
-        }
-
-    }
-
-    fun update(newList: ArrayList<Bitmap>) {
-        val diffCallback = DiffUtilHelperBitmap(mainArray, newList)
-        val diffResult = DiffUtil.calculateDiff(diffCallback)
-
-        mainArray.clear()
-        mainArray.addAll(newList)
-
-        diffResult.dispatchUpdatesTo(this)
-    }
-
-
 }

@@ -1,13 +1,19 @@
 package com.stato.jewintage.adapters
 
 import android.annotation.SuppressLint
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.text.InputType
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import android.widget.Button
 import android.widget.EditText
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
+import androidx.core.content.res.TypedArrayUtils.getString
 import androidx.recyclerview.widget.RecyclerView
+import com.stato.jewintage.R
 import com.stato.jewintage.databinding.CategoryItemBinding
 import com.stato.jewintage.model.Category
 import com.stato.jewintage.viewmodel.FirebaseViewModel
@@ -28,35 +34,39 @@ class CategoryAdapter(
     inner class CategoryViewHolder(val binding: CategoryItemBinding) :
         RecyclerView.ViewHolder(binding.root) {
         init {
-            binding.cvCategoryItem.setOnClickListener {
+            binding.cvCategoryItem.setOnClickListener { it ->
                 val category = categories[adapterPosition]
-                val builder = AlertDialog.Builder(it.context)
-                builder.setTitle("Enter commission for ${category.name}")
+                val inflater = LayoutInflater.from(it.context)
+                val dialogView = inflater.inflate(R.layout.dialog_commission_category, null)
+                val etNameCategory = dialogView.findViewById<EditText>(R.id.etCommission)
+                etNameCategory.setText(category.commission.toString())
+                val btnSubmitSave = dialogView.findViewById<Button>(R.id.btnSubmitSave)
+                val tvTitle = dialogView.findViewById<TextView>(R.id.tvCategory)
+                tvTitle.text = it.context.getString(R.string.edit_commission, category.name)
 
-                val input = EditText(it.context)
-                input.inputType = InputType.TYPE_CLASS_NUMBER
-                input.setText(category.commission.toString())
-                builder.setView(input)
+                val dialog = AlertDialog.Builder(it.context)
+                    .setView(dialogView)
+                    .create()
 
-                builder.setPositiveButton("OK") { dialog, _ ->
-                    val commission = input.text.toString().toFloatOrNull()
+                btnSubmitSave.setOnClickListener {
+                    val commission = etNameCategory.text.toString().toFloatOrNull()
                     if (commission != null && commission >= 0 && commission <= 100) {
                         category.commission = commission
                         listener.onCommissionChange(category, commission)
+                        dialog.dismiss()
                     } else {
                         Toast.makeText(
                             it.context,
-                            "Please enter a valid commission between 0 and 100",
+                            it.context.getString(R.string.warning_commission),
                             Toast.LENGTH_SHORT
                         ).show()
                     }
-                    dialog.dismiss()
                 }
-
-                builder.setNegativeButton("Cancel") { dialog, _ -> dialog.cancel() }
-
-                builder.show()
+                dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+                dialog.show()
             }
+
+
 
         }
     }

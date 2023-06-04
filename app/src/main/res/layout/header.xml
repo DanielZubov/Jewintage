@@ -10,7 +10,7 @@
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="180dp"
-        android:background="@drawable/bg_header">
+        android:background="?attr/colorPrimarySurface">
 
         <TextView
             android:id="@+id/titleHeader"

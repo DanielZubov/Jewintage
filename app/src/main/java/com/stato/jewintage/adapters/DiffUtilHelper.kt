@@ -1,6 +1,5 @@
 package com.stato.jewintage.adapters
 
-import android.graphics.Bitmap
 import androidx.recyclerview.widget.DiffUtil
 import com.stato.jewintage.model.AddCost
 import com.stato.jewintage.model.AddNom
@@ -17,24 +16,6 @@ class DiffUtilHelper(private val oldList: List<AddNom>, private val newList: Lis
 
     override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
         return oldList[oldItemPosition].id == newList[newItemPosition].id
-    }
-
-    override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
-        return oldList[oldItemPosition] == newList[newItemPosition]
-    }
-}
-
-class DiffUtilHelperBitmap(private val oldList: List<Bitmap>, private val newList: List<Bitmap>): DiffUtil.Callback() {
-    override fun getOldListSize(): Int {
-        return oldList.size
-    }
-
-    override fun getNewListSize(): Int {
-        return newList.size
-    }
-
-    override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
-        return oldList[oldItemPosition] === newList[newItemPosition]
     }
 
     override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {

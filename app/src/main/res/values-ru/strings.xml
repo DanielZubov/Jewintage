@@ -76,4 +76,27 @@
     <string name="title_new_category">Новая категория</string>
     <string name="category_name">Категория</string>
     <string name="error_saving_in_the_database">Ошибка сохранения в базе данных</string>
+    <string name="choose_your_picture">Выберите изображение</string>
+    <string name="camera">Камера</string>
+    <string name="gallery">Галерея</string>
+    <string name="permissions_required">Необходимые разрешения</string>
+    <string name="permissions_discription">Для правильной работы этого приложения требуются разрешения на камеру и хранилище.</string>
+    <string name="permissions_grant">Предоставить разрешения</string>
+    <string name="permissions_cancel">Отмена</string>
+    <string name="about">О программе</string>
+    <string name="version">Версия</string>
+    <string name="developer">Автор</string>
+    <string name="contacts">Контакты</string>
+    <string name="ok">ОК</string>
+    <string name="name_app">Приложение</string>
+    <string name="edit_commission">Введите комиссию для %1$s</string>
+    <string name="warning_commission">Пожалуйста, введите комиссию в диапазоне от 0 до 100</string>
+    <string name="warning_description">Превышено максимальное количество символов</string>
+    <string name="exit">Выход</string>
+    <string name="close_app_message">Вы уверены что хотите выйти из Jewintage?</string>
+    <string name="no">Нет</string>
+    <string name="yes">Да</string>
+    <string name="total">Итого:</string>
+    <string name="_0_0">0.0</string>
+    <string name="revenue">Выручка</string>
 </resources>
