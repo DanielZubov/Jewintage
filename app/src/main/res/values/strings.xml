@@ -118,6 +118,9 @@
     <string name="total">Total:</string>
     <string name="_0_0">0.0</string>
     <string name="revenue">Revenue</string>
+    <string name="update_completed_successfully">The update was completed successfully!</string>
+    <string name="update_incompleted_successfully">Update failed!</string>
+    <string name="update">Update</string>
 
 
 </resources>

@@ -3,6 +3,7 @@ plugins {
     id 'org.jetbrains.kotlin.android'
     id 'com.google.gms.google-services'
     id 'androidx.navigation.safeargs.kotlin'
+    id 'com.google.firebase.crashlytics'
 }
 
 android {
@@ -21,8 +22,8 @@ android {
         applicationId "com.stato.jewintage"
         minSdk 26
         targetSdk 33
-        versionCode 29
-        versionName "2.9-beta"
+        versionCode 34
+        versionName "3.4-beta"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -74,6 +75,7 @@ dependencies {
     implementation 'androidx.navigation:navigation-ui-ktx:2.5.3'
     implementation 'androidx.core:core-ktx:1.10.1'
     implementation 'androidx.preference:preference:1.2.0'
+    implementation 'com.google.firebase:firebase-crashlytics-ktx'
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'

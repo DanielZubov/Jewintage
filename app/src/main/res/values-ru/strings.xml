@@ -99,4 +99,7 @@
     <string name="total">Итого:</string>
     <string name="_0_0">0.0</string>
     <string name="revenue">Выручка</string>
+    <string name="update_completed_successfully">Обновление выполнено успешно!</string>
+    <string name="update_incompleted_successfully">Не удалось выполнить обновление!</string>
+    <string name="update">Обновление</string>
 </resources>

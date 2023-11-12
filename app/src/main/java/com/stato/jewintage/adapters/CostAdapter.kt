@@ -21,6 +21,13 @@ class CostAdapter(
     private val act: MainActivity,
     private val descriptionClickListener: OnDescriptionClickListener
 ) : RecyclerView.Adapter<CostAdapter.CostViewHolder>()  {
+    init {
+        setHasStableIds(true)
+    }
+
+    override fun getItemId(position: Int): Long {
+        return costList[position].id.hashCode().toLong()
+    }
     private val fullCostList : ArrayList<AddCost> = ArrayList()
     private var costList = ArrayList<AddCost>()
         set(value) {
@@ -98,7 +105,11 @@ class CostAdapter(
             "${cost.quantity} шт.".also { tvSaleItemQuant.text = it }
             val mainImage = cost.mainImage
             if (!mainImage.isNullOrEmpty() && mainImage != "empty") {
-                Picasso.get().load(mainImage).into(ivSaleItem)
+                Picasso.get()
+                    .load(mainImage)
+                    .fit()
+                    .centerCrop()
+                    .into(ivSaleItem)
             } else {
                 val context = binding.root.context
                 val defaultImage = ContextCompat.getDrawable(context, R.drawable.no_image_available)

@@ -20,6 +20,13 @@ class SalesAdapter(
     private val editClickListener: OnEditClickListener,
     private val descriptionClickListener: OnDescriptionClickListener
 ) : RecyclerView.Adapter<SalesAdapter.SalesViewHolder>() {
+    init {
+        setHasStableIds(true)
+    }
+
+    override fun getItemId(position: Int): Long {
+        return salesList[position].id.hashCode().toLong()
+    }
 
     private val fullSalesList : ArrayList<AddSales> = ArrayList()
     private var salesList = ArrayList<AddSales>()
@@ -99,7 +106,11 @@ class SalesAdapter(
             "${sale.soldQuantity} шт.".also { tvSaleItemQuant.text = it }
             val mainImage = sale.mainImage
             if (!mainImage.isNullOrEmpty() && mainImage != "empty") {
-                Picasso.get().load(mainImage).into(ivSaleItem)
+                Picasso.get()
+                    .load(mainImage)
+                    .fit()
+                    .centerCrop()
+                    .into(ivSaleItem)
             } else {
                 val context = binding.root.context
                 val defaultImage = ContextCompat.getDrawable(context, R.drawable.no_image_available)

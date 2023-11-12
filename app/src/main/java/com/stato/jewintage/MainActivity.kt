@@ -14,6 +14,7 @@ import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
@@ -35,6 +36,8 @@ import com.google.android.material.navigation.NavigationView
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
 import com.google.android.play.core.appupdate.AppUpdateManagerFactory
+import com.google.android.play.core.appupdate.AppUpdateOptions
+import com.google.android.play.core.common.IntentSenderForResultStarter
 import com.google.android.play.core.install.model.AppUpdateType
 import com.google.android.play.core.install.model.UpdateAvailability
 import com.google.firebase.auth.FirebaseAuth
@@ -66,6 +69,7 @@ class MainActivity : AppCompatActivity(), SalesAdapter.DeleteItemListener, Navig
     private lateinit var userPhotoImageView : ImageView
     private lateinit var conf: AppBarConfiguration
     private lateinit var navController: NavController
+    private lateinit var updateFlowResultLauncher: ActivityResultLauncher<IntentSenderRequest>
     var auth = Firebase.auth
     private val dialogHelper = DialogHelper(this)
     private val dbManager = DbManager()
@@ -85,6 +89,13 @@ class MainActivity : AppCompatActivity(), SalesAdapter.DeleteItemListener, Navig
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        updateFlowResultLauncher = registerForActivityResult(
+            ActivityResultContracts.StartIntentSenderForResult()
+        ) { result ->
+            if (result.resultCode == RESULT_OK) {
+                TODO()
+            }
+        }
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
         auth = Firebase.auth
@@ -104,6 +115,7 @@ class MainActivity : AppCompatActivity(), SalesAdapter.DeleteItemListener, Navig
         setupActionBarWithNavController(navController, conf)
         binding.btmMenu.setupWithNavController(navController)
     }
+
     private fun init(){
         checkUpdateApp()
         setSupportActionBar(binding.includeToolbar.toolbar)
@@ -170,28 +182,27 @@ class MainActivity : AppCompatActivity(), SalesAdapter.DeleteItemListener, Navig
         }
     }
 
-    override fun onStart() {
-        super.onStart()
-        uiUpdate(auth.currentUser)
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        getSharedPreferences("root_preferences", Context.MODE_PRIVATE)
-            .unregisterOnSharedPreferenceChangeListener(sharedPreferenceChangeListener)
-    }
-
-    private fun checkUpdateApp(){
+    private fun checkUpdateApp() {
         val appUpdateManager = AppUpdateManagerFactory.create(this)
         val appUpdateInfoTask = appUpdateManager.appUpdateInfo
         appUpdateInfoTask.addOnSuccessListener { appUpdateInfo ->
             if (appUpdateInfo.updateAvailability() == UpdateAvailability.UPDATE_AVAILABLE
-                && appUpdateInfo.isUpdateTypeAllowed(AppUpdateType.IMMEDIATE)) {
+                && appUpdateInfo.isUpdateTypeAllowed(AppUpdateType.IMMEDIATE)
+            ) {
+                val starter =
+                    IntentSenderForResultStarter { intent, _, fillInIntent, flagsMask, flagsValues, _, _ ->
+                        val request = IntentSenderRequest.Builder(intent)
+                            .setFillInIntent(fillInIntent)
+                            .setFlags(flagsValues, flagsMask)
+                            .build()
+                        updateFlowResultLauncher.launch(request)
+                    }
                 appUpdateManager.startUpdateFlowForResult(
                     appUpdateInfo,
-                    AppUpdateType.IMMEDIATE,
-                    this,
-                    MY_REQUEST_CODE)
+                    starter,
+                    AppUpdateOptions.newBuilder(AppUpdateType.IMMEDIATE).build(),
+                    MY_REQUEST_CODE
+                )
             }
         }
     }
@@ -222,6 +233,9 @@ class MainActivity : AppCompatActivity(), SalesAdapter.DeleteItemListener, Navig
 
             R.id.register -> {
                 dialogHelper.createSignDialog(DialogConst.SIGN_UP_STATE)
+            }
+            R.id.update -> {
+                checkUpdateApp()
             }
         }
         binding.drawerLayout.closeDrawer(GravityCompat.START)
@@ -383,6 +397,20 @@ class MainActivity : AppCompatActivity(), SalesAdapter.DeleteItemListener, Navig
 
     override fun onDeleteCostItem(cost: AddCost) {
         firebaseViewModel.deleteCostItem(cost)
+    }
+
+    override fun onStart() {
+        super.onStart()
+        Log.d("MainActivityLog", "onStart")
+        uiUpdate(auth.currentUser)
+    }
+
+
+    override fun onDestroy() {
+        super.onDestroy()
+        Log.d("MainActivityLog", "onDestroy")
+        getSharedPreferences("root_preferences", Context.MODE_PRIVATE)
+            .unregisterOnSharedPreferenceChangeListener(sharedPreferenceChangeListener)
     }
 
 

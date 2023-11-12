@@ -22,6 +22,13 @@ class AddRcAdapter(
     private val sellButtonClickListener: SellButtonClickListener,
     private val descriptionClickListener: OnDescriptionClickListener
 ) : RecyclerView.Adapter<AddRcAdapter.AdHolder>() {
+    init {
+        setHasStableIds(true)
+    }
+
+    override fun getItemId(position: Int): Long {
+        return addArray[position].id.hashCode().toLong()
+    }
     private val fullAddArray: ArrayList<AddNom> = ArrayList()
 
     private var addArray = ArrayList<AddNom>()
@@ -112,7 +119,12 @@ class AddRcAdapter(
 
             val mainImage = addNom.mainImage
             if (!mainImage.isNullOrEmpty() && mainImage != "empty") {
-                Picasso.get().load(mainImage).into(ivNomItem)
+                Picasso.get()
+                    .load(mainImage)
+                    .fit()
+                    .centerCrop()
+                    .into(ivNomItem)
+
             } else {
                 val context = binding.root.context
                 val defaultImage = ContextCompat.getDrawable(context, R.drawable.no_image_available)
